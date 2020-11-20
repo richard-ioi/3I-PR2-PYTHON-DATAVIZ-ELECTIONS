@@ -8,16 +8,59 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 import pandas as pd
+import plotly.graph_objects as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+df = pd.read_csv('data/elections_2012_par_ville.csv' ,low_memory = False)
+inscrits = df['Inscrits']
+votants = df['Votants']
+departements = df['Libellé_du_département']
+departement = 'SEINE SAINT-DENIS'
+seinestdenis = df.query("Libellé_du_département == 'SEINE SAINT-DENIS'")
+
+# fig = go.Scatter(
+#     x=seinestdenis['Inscrits'],
+#     y=seinestdenis['Votants'],
+#     mode='markers',
+# )
+#, color="Code_du_département"
+fig = px.scatter(df, x=seinestdenis['Inscrits'], y=seinestdenis['Votants'])
+                 #size=seinestdenis['Abstentions'])
+                 #log_x=True, size_max=60)
+
+
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# app.layout = html.Div(children=[
+#     html.H1(children='Elections présidentielles françaises depuis 1995'),
+
+#     html.Div(children='''
+#         Dash: A web application framework for Python.
+#     '''),
+#     dcc.Graph(
+#         id='votants_inscrits',
+#         figure =trace
+#     ),
+#       html.Div(children=f'''
+#                                 Le graphique ci-dessus montre le nombre de votants en fonction des 
+#                                 Inscriptions aux elections presientielles de 2012 en 
+#                                 Seine Saint-Denis.
+#                             '''),
+#     ]),
 app.layout = html.Div(children=[
     html.H1(children='Elections présidentielles françaises depuis 1995'),
 
     html.Div(children='''
         Dash: A web application framework for Python.
-    ''')])
+    '''),
+    html.Div([
+    dcc.Graph(
+        id='life-exp-vs-gdp',
+        figure=fig
+    )
+    ])
+])
+    
 
 
 if __name__ == '__main__':

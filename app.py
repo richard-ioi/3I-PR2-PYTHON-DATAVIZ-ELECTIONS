@@ -25,7 +25,31 @@ votants = df['Votants']
 departements = df['Libellé_du_département']
 departement = 'SEINE SAINT-DENIS'
 seinestdenis = df.query("Libellé_du_département == 'SEINE SAINT-DENIS'")
+nom = df['Nom']
 
+
+sJoly=""
+sHollande=""
+sSarkozy=""
+compteur=0
+for i in nom:
+    if i=='JOLY':
+        compteur+=1
+        sJoly+="" + str(compteur)+')'+' '+i+'\n'
+        sJoly+="\n"
+compteur=0
+
+for i in nom:
+    if i=='HOLLANDE':
+        compteur+=1
+        sHollande+=str(compteur)+')'+' '+i+'\n'
+
+compteur=0
+
+for i in nom:
+    if i=='SARKOZY':
+        compteur+=1
+        sSarkozy+=str(compteur)+')'+' '+i+'\n'
 # fig = go.Scatter(
 #     x=seinestdenis['Inscrits'],
 #     y=seinestdenis['Votants'],
@@ -66,7 +90,10 @@ app.layout = html.Div(children=[
         id='life-exp-vs-gdp',
         figure=fig
     )
-    ])
+    ]),
+    html.Div(children=sJoly),
+    html.Div(children=sHollande),
+    html.Div(children=sSarkozy)
 ])
     
 

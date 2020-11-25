@@ -12,6 +12,14 @@ import plotly.graph_objects as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 df = pd.read_csv('data/elections_2012_par_ville.csv' ,low_memory = False)
+#Renommage de colonnes 
+#code de département et libe
+df.rename(columns={'Libellé du département': 'Libellé_du_département', 'Code du département':'Code_du_département', 'Code de la commune':'Code_de_la_commune'
+                    , 'Libellé de la commune':'Libellé_de_la_commune', '% Abs/Ins':'%_Abs/Ins', '% Vot/Ins':'%_Vot/Ins', 'Blancs et nuls':'Blancs_et_nuls' }, inplace=True)
+#Dictionnaire d'accès aux candidats
+#joly, indice 16
+mapping = {df.columns[16]:"NomJoly", df.columns[17]:"PrénomJoly", df.columns[18]:"VoixJoly", df.columns[19]:"Joly"}
+
 inscrits = df['Inscrits']
 votants = df['Votants']
 departements = df['Libellé_du_département']

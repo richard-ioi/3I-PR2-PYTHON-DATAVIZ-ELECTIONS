@@ -20,8 +20,8 @@ df.rename(columns={'Libellé du département': 'Libellé_du_département', 'Code
 #joly, indice 16
 #mapping = {df.columns[16]:"NomJoly", df.columns[17]:"PrénomJoly", df.columns[18]:"VoixJoly", df.columns[19]:"Joly"}
 
-#inscrits = df['Inscrits']
-#votants = df['Votants']
+inscrits = df['Inscrits']
+votants = df['Votants']
 departements = df['Libellé_du_département']
 departement = 'SEINE SAINT-DENIS'
 seinestdenis = df.query("Libellé_du_département == 'SEINE SAINT-DENIS'")

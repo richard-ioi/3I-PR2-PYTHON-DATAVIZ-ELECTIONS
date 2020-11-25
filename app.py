@@ -18,10 +18,10 @@ df.rename(columns={'Libellé du département': 'Libellé_du_département', 'Code
                     , 'Libellé de la commune':'Libellé_de_la_commune', '% Abs/Ins':'%_Abs/Ins', '% Vot/Ins':'%_Vot/Ins', 'Blancs et nuls':'Blancs_et_nuls' }, inplace=True)
 #Dictionnaire d'accès aux candidats
 #joly, indice 16
-mapping = {df.columns[16]:"NomJoly", df.columns[17]:"PrénomJoly", df.columns[18]:"VoixJoly", df.columns[19]:"Joly"}
+#mapping = {df.columns[16]:"NomJoly", df.columns[17]:"PrénomJoly", df.columns[18]:"VoixJoly", df.columns[19]:"Joly"}
 
-inscrits = df['Inscrits']
-votants = df['Votants']
+#inscrits = df['Inscrits']
+#votants = df['Votants']
 departements = df['Libellé_du_département']
 departement = 'SEINE SAINT-DENIS'
 seinestdenis = df.query("Libellé_du_département == 'SEINE SAINT-DENIS'")

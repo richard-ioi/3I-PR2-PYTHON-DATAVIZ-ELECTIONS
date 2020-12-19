@@ -2,7 +2,7 @@
 
 # Run this app with `python app.py` and
 # visit localhost:8051/ in your web browser.
-
+from readFiles import departmentQuery
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -11,14 +11,23 @@ import pandas as pd
 import plotly.graph_objects as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-df = pd.read_csv('data/resultats_communes_T1_2012.csv' ,error_bad_lines=False, sep=';')#, low_memory=False)
-#removes disruptive characters from column names 
-df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
-print(df.columns)
-seinestdenis = df.query("libellé_du_département == 'SEINE SAINT-DENIS'")
+###### reading csv data files ############
+#Data from the first round of the 2012 french presidential elections
+d121 = pd.read_csv('data/resultats_communes_T1_2012.csv' ,error_bad_lines=False, sep=';', low_memory=False)
+#Data from the first round of the 1995 french presidential elections (row 0 to 36671)
+d951 = pd.read_csv('data/elections_1995_par_ville.csv', nrows=36671, low_memory=False)
+d952 = pd.read_csv('data/elections_1995_par_ville.csv', skiprows=36671, low_memory=False)
+#removes disruptive characters from column names of csv files, lowers all characters
+d121.columns = d121.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
+d951.columns = d951.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
 
-fig = px.scatter(df, x=seinestdenis['inscrits'], y=seinestdenis['votants'])
+seinestdenis121 = departmentQuery('93', d121) #d121.query("code_du_département == '93'")
 
+fig = px.scatter(seinestdenis121, x=seinestdenis121['inscrits'], y=seinestdenis121['%_vot/ins'], hover_name="libellé_de_la_commune",width=600, height=300, title="2012")
+fig.update_layout(
+    margin=dict(l=20, r=20, t=30, b=20),
+    paper_bgcolor="LightSteelBlue",
+)
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(children=[
@@ -27,7 +36,17 @@ app.layout = html.Div(children=[
     html.Div(children='''
         Dash: A web application framework for Python.
     '''),
+    
     html.Div([
+    dcc.Dropdown(
+        options=[
+            {'label': '1995', 'value': '1995'},
+            {'label': '2002', 'value': '2002'},
+            {'label': '2007', 'value': '2007'},
+            {'label':'2012', 'value':'2012'},
+            {'label':'2017', 'value':'2017'}
+        ],
+        placeholder="Sélectionnez une année"),
     dcc.Graph(
         id='life-exp-vs-gdp',
         figure=fig

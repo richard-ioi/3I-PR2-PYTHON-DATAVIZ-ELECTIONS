@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-df = pd.read_csv('data/elections_2012_par_ville.csv' ,low_memory = False)
+df = pd.read_csv('data/resultats_communes_T1_2012.csv' ,error_bad_lines=False, low_memory=False)
 
 #Renommage de colonnes 
 #code de département et libe
@@ -21,9 +21,9 @@ df.rename(columns={'Libellé du département': 'Libellé_du_département', 'Code
 #joly, indice 16
 #mapping = {df.columns[16]:"NomJoly", df.columns[17]:"PrénomJoly", df.columns[18]:"VoixJoly", df.columns[19]:"Joly"}
 
-inscrits = df['Inscrits']
-votants = df['Votants']
-departements = df['Libellé_du_département']
+#inscrits = df['Inscrits']
+#votants = df['Votants']
+#departements = df['Libellé_du_département']
 
 departement = 'SEINE SAINT-DENIS'
 seinestdenis = df.query("Libellé_du_département == 'SEINE SAINT-DENIS'")
@@ -58,29 +58,14 @@ for i in nom:
 #     mode='markers',
 # )
 #, color="Code_du_département"
-fig = px.scatter(df, x=seinestdenis['Inscrits'], y=seinestdenis['Votants'])
+fig = px.scatter(df, x=seinestdenis['Code_du_département'], y=seinestdenis['Votants'])
                  #size=seinestdenis['Abstentions'])
                  #log_x=True, size_max=60)
 
 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# app.layout = html.Div(children=[
-#     html.H1(children='Elections présidentielles françaises depuis 1995'),
 
-#     html.Div(children='''
-#         Dash: A web application framework for Python.
-#     '''),
-#     dcc.Graph(
-#         id='votants_inscrits',
-#         figure =trace
-#     ),
-#       html.Div(children=f'''
-#                                 Le graphique ci-dessus montre le nombre de votants en fonction des 
-#                                 Inscriptions aux elections presientielles de 2012 en 
-#                                 Seine Saint-Denis.
-#                             '''),
-#     ]),
 app.layout = html.Div(children=[
     html.H1(children='Elections présidentielles françaises depuis 1995'),
 
@@ -92,10 +77,7 @@ app.layout = html.Div(children=[
         id='life-exp-vs-gdp',
         figure=fig
     )
-    ]),
-    html.Div(children=sJoly),
-    html.Div(children=sHollande),
-    html.Div(children=sSarkozy)
+    ])
 ])
     
 

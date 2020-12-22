@@ -23,35 +23,39 @@ d951.columns = d951.columns.str.strip().str.lower().str.replace(' ', '_').str.re
 
 seinestdenis121 = departmentQuery('93', d121) #d121.query("code_du_département == '93'")
 
-fig = px.scatter(seinestdenis121, x=seinestdenis121['inscrits'], y=seinestdenis121['%_vot/ins'], hover_name="libellé_de_la_commune",width=600, height=300, title="2012")
+fig = px.scatter(seinestdenis121, x=seinestdenis121['inscrits'], y=seinestdenis121['%_vot/ins'], hover_name="libellé_de_la_commune", height=300, title="2012")
 fig.update_layout(
     margin=dict(l=20, r=20, t=30, b=20),
     paper_bgcolor="LightSteelBlue",
 )
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.layout = html.Div(children=[
+app = dash.Dash(__name__, title="Analyse des données d'élections")#, external_stylesheets=external_stylesheets)
+app.layout = html.Div([
     html.H1(children='Elections présidentielles françaises depuis 1995'),
   
-    html.Div(children='''
+    html.P(children='''
         Dash: A web application framework for Python.
     '''),
     
-    html.Div([
-    dcc.Dropdown(
-        options=[
-            {'label': '1995', 'value': '1995'},
-            {'label': '2002', 'value': '2002'},
-            {'label': '2007', 'value': '2007'},
-            {'label':'2012', 'value':'2012'},
-            {'label':'2017', 'value':'2017'}
-        ],
-        placeholder="Sélectionnez une année"),
-    dcc.Graph(
-        id='life-exp-vs-gdp',
-        figure=fig
+    html.Div(
+        className='drop-down-year',
+        children=[ 
+            dcc.Dropdown(
+                options=[
+                    {'label': '1995', 'value': '1995'},
+                    {'label': '2002', 'value': '2002'},
+                    {'label': '2007', 'value': '2007'},
+                    {'label':'2012', 'value':'2012'},
+                    {'label':'2017', 'value':'2017'}
+                ],
+                placeholder="Sélectionnez une année"
+            ),
+            dcc.Graph(
+                id='life-exp-vs-gdp',
+                figure=fig
+            )
+        ]
     )
-    ])
 ])
 
 if __name__ == '__main__':

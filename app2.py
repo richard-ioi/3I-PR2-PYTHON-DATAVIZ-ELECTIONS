@@ -21,7 +21,7 @@ d952 = pd.read_csv('data/elections_1995_par_ville.csv', skiprows=36671, low_memo
 d121.columns = d121.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
 d951.columns = d951.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
 
-seinestdenis121 = departmentQuery('93', d121) #d121.query("code_du_département == '93'")
+seinestdenis121 = departmentQuery('92', d121) #d121.query("code_du_département == '93'")
 
 fig = px.scatter(seinestdenis121, x=seinestdenis121['inscrits'], y=seinestdenis121['%_vot/ins'], hover_name="libellé_de_la_commune", height=300, title="2012")
 fig.update_layout(

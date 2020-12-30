@@ -1,3 +1,14 @@
+#year-slider{
+    width : 500px;
+    float: left;
+}
+#test-graph{
+    width : 600px;
+    position: relative;
+}
+#test-dropdown{
+    width : 100px;
+}
 .drop-down-year{
     width: 600px;
 }

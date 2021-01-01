@@ -11,13 +11,6 @@ def commaToDot(name):
         temp = comma.replace(',', '.')
         convert.append(temp)   
     return convert
-#Converts string in list to float
-# def stringToFloat(name):
-#     convert = []
-#     for string in name:
-#        # temp = float(string)
-#         #convert.append(temp)
-#     return convert
 
 #selects a specific department 
 def departmentQuery(code, name):
@@ -25,3 +18,6 @@ def departmentQuery(code, name):
 #creates a string for queries
 def createQueryString(code):
     return f'code_du_département == "{code}"'
+
+    
+    

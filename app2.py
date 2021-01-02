@@ -16,24 +16,40 @@ from urllib.request import urlopen
 import json
 from statistics import mean
 from dash.dependencies import Input, Output
+import requests
+import io
 
 
 ###### reading csv data files ############
+url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
+
+url2002T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T1.csv").content
+url2002T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T2.csv").content
+
+url2007T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T1.csv").content
+url2007T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T2.csv").content
+
+url2012T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T1.csv").content
+url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T2.csv").content
+
+url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
+url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
+
 #Data from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
-d951 = pd.read_csv('data/election_1995_par_ville.csv', nrows=36671, low_memory=False)
-d952 = pd.read_csv('data/election_1995_par_ville.csv', skiprows=36671, low_memory=False)
+d951 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), nrows=36671, low_memory=False)
+d952 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), skiprows=36671, low_memory=False)
 #Data from the first and second rounds of the 2002 french presidential elections 
-d021 = pd.read_csv('data/election_2002_T1.csv' ,error_bad_lines=False, sep=';', low_memory=False)
-d022 = pd.read_csv('data/election_2002_T2.csv' ,error_bad_lines=False, sep=';', low_memory=False)
+d021 = pd.read_csv(io.StringIO(url2002T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+d022 = pd.read_csv(io.StringIO(url2002T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 #Data from the first and second rounds of the 2007 french presidential elections 
-d071 = pd.read_csv('data/election_2007_T1.csv' ,error_bad_lines=False, sep=';', low_memory=False)
-d072 = pd.read_csv('data/election_2007_T2.csv' ,error_bad_lines=False, sep=';', low_memory=False)
+d071 = pd.read_csv(io.StringIO(url2007T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+d072 = pd.read_csv(io.StringIO(url2007T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 #Data from the first round of the 2012 french presidential elections
-d121 = pd.read_csv('data/election_2012_T1.csv' ,error_bad_lines=False, sep=';', low_memory=False)
-d122 = pd.read_csv('data/election_2012_T2.csv' ,error_bad_lines=False, sep=';', low_memory=False)
+d121 = pd.read_csv(io.StringIO(url2012T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+d122 = pd.read_csv(io.StringIO(url2012T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 #Data from the first and second rounds of the 2017 french presidential elections 
-d171 = pd.read_csv('data/election_2017_T1.csv' ,error_bad_lines=False, sep=';', low_memory=False)
-d172 = pd.read_csv('data/election_2017_T2.csv' ,error_bad_lines=False, sep=';', low_memory=False)
+d171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+d172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 #removes disruptive characters from column names of csv files, lowers all characters
 d951.columns = normaliseNames(d951)
 d952.columns = normaliseNames(d952)

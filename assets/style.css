@@ -1,0 +1,21 @@
+#year-slider{
+    width : 500px;
+    float: left;
+}
+#test-graph{
+    width : 600px;
+    position: relative;
+}
+#test-dropdown{
+    width : 100px;
+}
+.drop-down-year{
+    width: 600px;
+}
+
+h1{
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+p{
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}

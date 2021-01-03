@@ -38,8 +38,6 @@ url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/e
 url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
 url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
 
-urlTaux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/Taux.csv").content
-dTaux=pd.read_csv('data/Taux.csv',dtype={"code": str})
 
 ###### reading csv data files ############
 #Data from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
@@ -75,17 +73,20 @@ d021 = d021.assign(year = "2002")
 d071 = d071.assign(year = "2007")
 d121 = d121.assign(year = "2012")
 d171 = d171.assign(year = "2017")
-  
+
 ############# map drawing ##########
 print("Load de la map...")
 with urlopen('https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/departements.json') as response:
     departements = json.load(response)
+dTaux = pd.read_csv("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/taux.csv",
+                   dtype={"taux_de_participation": float})
 print("Traçage de la map...")
-fig = go.Figure(go.Choroplethmapbox(geojson=departements, locations=dTaux.code, z=dTaux.taux_de_participation,
-                                    colorscale="Viridis", zmin=0, zmax=12,
-                                    marker_opacity=0.5, marker_line_width=0))
-fig.update_layout(mapbox_style="carto-positron",
-                  mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
+fig = px.choropleth_mapbox(dTaux, geojson=departements, color="taux_de_participation",
+                    locations="code", featureidkey="properties.code",
+                    center={"lat": 47.5, "lon": 2.3},
+                    mapbox_style="carto-positron", zoom=4.5
+                   )
+fig.update_geos(fitbounds="locations", visible=False)
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 #fig.show()
 print("Map finie")
@@ -158,7 +159,11 @@ app.layout = html.Div([
     html.P(children='''
         Dash: A web application framework for Python.
     '''),
-    
+    html.Div(
+        children=[
+            dcc.Graph(figure=fig)
+        ]
+    ),
     html.Div(
         className='drop-down-year',
         children=[ 
@@ -201,11 +206,6 @@ app.layout = html.Div([
                 },
                 value=[1995]
             )  
-        ]
-    ),
-    html.Div(
-        children=[
-            dcc.Graph(figure=fig)
         ]
     )
 ])

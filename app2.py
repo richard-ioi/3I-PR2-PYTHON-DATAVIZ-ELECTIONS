@@ -4,24 +4,20 @@
 # visit localhost:8051/ in your web browser.
 
 ############ imports ###########
-#from readFiles import departmentQuery
-from readFiles import *
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_leaflet.express as dlx
-import dash_leaflet as dl
-from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
-import plotly.graph_objects as go
-from urllib.request import urlopen
-import json
-from statistics import mean
-from dash.dependencies import Input, Output
 import requests
 import io
-import plotly.express as px
+import json
+from dash.dependencies import Input, Output
+from urllib.request import urlopen
+from readFiles import normaliseNames
+from readFiles import commaToDot
+from readFiles import departmentQuery
+from readFiles import createQueryString
 
 ###### importing csv data files ############
 url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content

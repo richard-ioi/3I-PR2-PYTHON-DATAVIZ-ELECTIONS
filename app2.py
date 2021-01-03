@@ -9,6 +9,9 @@ from readFiles import *
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_leaflet.express as dlx
+import dash_leaflet as dl
+from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
@@ -18,9 +21,9 @@ from statistics import mean
 from dash.dependencies import Input, Output
 import requests
 import io
+import plotly.express as px
 
-
-###### reading csv data files ############
+###### importing csv data files ############
 url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
 
 url2002T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T1.csv").content
@@ -35,6 +38,10 @@ url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/e
 url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
 url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
 
+urlTaux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/Taux.csv").content
+dTaux=pd.read_csv('data/Taux.csv',dtype={"code": str})
+
+###### reading csv data files ############
 #Data from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
 d951 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), nrows=36671, low_memory=False)
 d952 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), skiprows=36671, low_memory=False)
@@ -50,6 +57,7 @@ d122 = pd.read_csv(io.StringIO(url2012T2.decode('utf-8')) ,error_bad_lines=False
 #Data from the first and second rounds of the 2017 french presidential elections 
 d171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 d172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+
 #removes disruptive characters from column names of csv files, lowers all characters
 d951.columns = normaliseNames(d951)
 d952.columns = normaliseNames(d952)
@@ -69,17 +77,18 @@ d121 = d121.assign(year = "2012")
 d171 = d171.assign(year = "2017")
   
 ############# map drawing ##########
-# mapEurope = go.Figure(go.Scattergeo())
-# mapEurope.update_geos(
-#     visible=True, resolution=110, scope="europe",
-#     fitbounds="locations",
-#     showcountries=True, countrycolor="Black",
-#     showsubunits=True, subunitcolor="Blue"
-# )
-# mapEurope.update_layout(height=300, margin={"r":0,"t":0,"l":0,"b":0})
-# mapEurope.show()
-
-
+print("Load de la map...")
+with urlopen('https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/departements.json') as response:
+    departements = json.load(response)
+print("Traçage de la map...")
+fig = go.Figure(go.Choroplethmapbox(geojson=departements, locations=dTaux.code, z=dTaux.taux_de_participation,
+                                    colorscale="Viridis", zmin=0, zmax=12,
+                                    marker_opacity=0.5, marker_line_width=0))
+fig.update_layout(mapbox_style="carto-positron",
+                  mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+#fig.show()
+print("Map finie")
 ###### Moyenne des voix 2012###########
 # joly = d121['%_voix/ins_joly']
 
@@ -93,6 +102,7 @@ d171 = d171.assign(year = "2017")
 #     floatJoly.append(i)
 # moyenneJoly = mean(floatJoly)
 # print(moyenneJoly)
+
 
 #Department and region names
 department_names = {
@@ -138,8 +148,10 @@ year_name = {
     2012 : [d121, d122],
     2017 : [d171, d172]
 }
+
 ############## dash app ############
-app = dash.Dash(__name__, title="Analyse des données d'élections")#, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, title="Analyse des données d'élections",prevent_initial_callbacks=True)#, external_stylesheets=external_stylesheets)
+app.title = 'Elections présidentielles françaises de 1995 à 2017'
 app.layout = html.Div([
     html.H1(children='Elections présidentielles françaises de 1995 à 2017'),
   
@@ -190,16 +202,22 @@ app.layout = html.Div([
                 value=[1995]
             )  
         ]
+    ),
+    html.Div(
+        children=[
+            dcc.Graph(figure=fig)
+        ]
     )
 ])
 @app.callback(
-    Output('test-graph', 'figure'),
-    Input('departements', 'value'),
-    Input('year-slider', 'value'),
-    Input('round-select', 'value')
+   Output('test-graph', 'figure'),
+   Input('departements', 'value'),
+   Input('year-slider', 'value'),
+   Input('round-select', 'value'),
 )
 def update_figure(selected_departement, selected_year, selected_round): 
     global filtered_df
+    print("Données prêtes")
     for i,j  in year_name.items():
         print("i is  : "+str(i), "selected year is : "+str(selected_year))
         if(i == selected_year[0]):
@@ -217,5 +235,6 @@ def update_figure(selected_departement, selected_year, selected_round):
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8051 )
-
+    print("Chargement des données...")
+    print("Rendez-vous sur localhost:8051 pour finir le chargement des données (recharger la page si erreur)")
+    app.run_server(debug=True, port=8051)

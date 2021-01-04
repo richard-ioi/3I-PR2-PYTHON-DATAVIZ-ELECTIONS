@@ -34,11 +34,15 @@ url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/e
 url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
 url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
 
-
+#read_1995=pd.read_excel (r'https://www.data.gouv.fr/fr/datasets/r/e44ed516-cd60-4c42-bb18-5a791c7431ec')
+#read_1995.to_csv(r'data/1995.csv',index=None,header=True)
 ###### reading csv data files ############
 #Data from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
 d951 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), nrows=36671, low_memory=False)
 d952 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), skiprows=36671, low_memory=False)
+#d951 = pd.read_csv('data/1995.csv', nrows=36671, low_memory=False)
+#d952 = pd.read_csv('data/1995.csv', skiprows=36671, low_memory=False)
+
 #Data from the first and second rounds of the 2002 french presidential elections 
 d021 = pd.read_csv(io.StringIO(url2002T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 d022 = pd.read_csv(io.StringIO(url2002T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
@@ -70,9 +74,10 @@ d071 = d071.assign(year = "2007")
 d121 = d121.assign(year = "2012")
 d171 = d171.assign(year = "2017")
 
+
 ############# map drawing ##########
 print("Load de la map...")
-with urlopen('https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/departements.json') as response:
+with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
     departements = json.load(response)
 dTaux = pd.read_csv("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/taux.csv",
                    dtype={"taux_de_participation": float})

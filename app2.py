@@ -178,8 +178,7 @@ year_name = {
     2017 : [d171, d172]
 }
 ############## dash app ############
-app = dash.Dash(__name__, title="Analyse des données d'élections",prevent_initial_callbacks=True)#, external_stylesheets=external_stylesheets)
-app.title = 'Elections présidentielles françaises de 1995 à 2017'
+app = dash.Dash(__name__, title="Analyse des données d'élections")
 app.layout = html.Div([
     html.H1(children='Elections présidentielles françaises de 1995 à 2017'),
   
@@ -220,6 +219,7 @@ app.layout = html.Div([
             dcc.Graph(figure=map), 
             html.Br(),
             dcc.Graph(id='test-graph'),
+
             html.P("Selectionner l'année"),
             dcc.RangeSlider(
                 id='year-slider',
@@ -248,7 +248,6 @@ def update_figure(selected_departement, selected_year, selected_round):
     global filtered_df
     draw_map(d171)
     for i,j  in year_name.items():
-        print("i is  : "+str(i), "selected year is : "+str(selected_year))
         if(i == selected_year[0]):
             if(selected_round == 'T1'):
                 filtered_df = departmentQuery(selected_departement, j[0])
@@ -256,7 +255,7 @@ def update_figure(selected_departement, selected_year, selected_round):
                 filtered_df = departmentQuery(selected_departement, j[1])
             #map.update_layout(center={"lat": 47.5, "lon": 2.0}, zoom=7)
 
-    fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title=str(selected_year[0]))
+    fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig.update_layout(
         margin=dict(l=20, r=20, t=30, b=20),
         paper_bgcolor="LightSteelBlue",

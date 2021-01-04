@@ -5,6 +5,7 @@
 #test-graph{
     width : 600px;
     position: relative;
+    float: right;
 }
 #test-dropdown{
     width : 100px;

@@ -67,7 +67,7 @@ d021 = d021.assign(year = "2002")
 d071 = d071.assign(year = "2007")
 d121 = d121.assign(year = "2012")
 d171 = d171.assign(year = "2017")
-  
+
 ############# map drawing ##########
 # mapEurope = go.Figure(go.Scattergeo())
 # mapEurope.update_geos(
@@ -94,7 +94,7 @@ d171 = d171.assign(year = "2017")
 # moyenneJoly = mean(floatJoly)
 # print(moyenneJoly)
 
-#Department and region names
+"""Department names"""
 department_names = {
     '1': 'Ain', '2': 'Aisne', '3': 'Allier', '4': 'Alpes-de-Haute-Provence', '5': 'Hautes-Alpes','6': 'Alpes-Maritimes', 
     '7': 'Ardèche', '8': 'Ardennes', '9': 'Ariège', '10': 'Aube', '11': 'Aude','12': 'Aveyron', '13': 'Bouches-du-Rhône', 
@@ -111,7 +111,7 @@ department_names = {
     '83': 'Var', '84': 'Vaucluse', '85': 'Vendée','86': 'Vienne', '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
     '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne', '95': 'Val-d\'Oise',
 }
-
+""" region names """
 region_names = {
     'Auvergne-Rhône-Alpes': ['01', '03', '07', '15', '26', '38', '42', '43', '63', '69', '73', '74'],
     'Bourgogne-Franche-Comté': ['21', '25', '39', '58', '70', '71', '89', '90'],
@@ -131,6 +131,7 @@ region_names = {
     'Pays de la Loire': ['44', '49', '53', '72', '85'],
     'Provence-Alpes-Côte d\'Azur': ['04', '05', '06', '13', '83', '84'],
 }
+""" Years and associated dataframes"""
 year_name = {
     1995 : [d951, d952],
     2002 : [d021, d022],
@@ -139,7 +140,7 @@ year_name = {
     2017 : [d171, d172]
 }
 ############## dash app ############
-app = dash.Dash(__name__, title="Analyse des données d'élections")#, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, title="Analyse des données d'élections")
 app.layout = html.Div([
     html.H1(children='Elections présidentielles françaises de 1995 à 2017'),
   
@@ -174,6 +175,7 @@ app.layout = html.Div([
     html.Div(
         children=[
             dcc.Graph(id='test-graph'),
+
             html.P("Selectionner l'année"),
             dcc.RangeSlider(
                 id='year-slider',
@@ -201,14 +203,13 @@ app.layout = html.Div([
 def update_figure(selected_departement, selected_year, selected_round): 
     global filtered_df
     for i,j  in year_name.items():
-        print("i is  : "+str(i), "selected year is : "+str(selected_year))
         if(i == selected_year[0]):
             if(selected_round == 'T1'):
                 filtered_df = departmentQuery(selected_departement, j[0])
             elif(selected_round == 'T2'):
                 filtered_df = departmentQuery(selected_departement, j[1])
 
-    fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title=str(selected_year[0]))
+    fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig.update_layout(
         margin=dict(l=20, r=20, t=30, b=20),
         paper_bgcolor="LightSteelBlue",

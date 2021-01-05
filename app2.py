@@ -15,9 +15,7 @@ import json
 from dash.dependencies import Input, Output
 from urllib.request import urlopen
 from readFiles import normaliseNames
-from readFiles import commaToDot
 from readFiles import departmentQuery
-from readFiles import createQueryString
 #pd.options.mode.chained_assignment = None  # default='warn'
 
 #Department and region names

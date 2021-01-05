@@ -1,6 +1,3 @@
-import pandas as pd
-import pygal
-
 def normaliseNames(name):
     """ In column header names : replaces spaces by _ , lowers all the characters and removes any disruptive characters 
 
@@ -40,7 +37,3 @@ def departmentQuery(code, name):
     object: sub-frame holding data from the selected departement
     """
     return name.query(f'code_du_département == "{code}"')
-
-
-    
-    

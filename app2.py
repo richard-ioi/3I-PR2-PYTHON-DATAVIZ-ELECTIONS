@@ -71,6 +71,8 @@ url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/e
 url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
 url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
 
+urlChefLieux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
+
 #read_1995=pd.read_excel (r'https://www.data.gouv.fr/fr/datasets/r/e44ed516-cd60-4c42-bb18-5a791c7431ec')
 #read_1995.to_csv(r'data/1995.csv',index=None,header=True)
 ###### reading csv data files ############
@@ -93,6 +95,8 @@ d122 = pd.read_csv(io.StringIO(url2012T2.decode('utf-8')) ,error_bad_lines=False
 d171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 d172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 
+dChefLieux = pd.read_csv(io.StringIO(urlChefLieux.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+
 #removes disruptive characters from column names of csv files, lowers all characters
 d951.columns = normaliseNames(d951)
 d952.columns = normaliseNames(d952)
@@ -110,6 +114,13 @@ d021 = d021.assign(year = "2002")
 d071 = d071.assign(year = "2007")
 d121 = d121.assign(year = "2012")
 d171 = d171.assign(year = "2017")
+
+
+def trouve_chef_lieu(code):
+    #vD=dChefLieux.query(f'code== "{code}"')
+    #vD=dChefLieux.query(f'code == "60"')
+    #return vD.loc['geom_x_y']
+    return '49.4365523321,2.08616123661'
 
 def calcul_taux_participation_departement(dYear):
     dT={}
@@ -135,25 +146,62 @@ def calcul_taux_participation_departement(dYear):
     dTaux=dTaux.rename(columns={'index':'code'})
     return dTaux
 ############# map drawing ##########
-def draw_map(dYear):
+def draw_map(dYear,type,code='60'):
     print("Load de la map...")
-    with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-        departements = json.load(response)
-    dTauxFinal=calcul_taux_participation_departement(dYear)
+    vLat=47.5
+    vLon=2.6
+    vZoom=4.4
+    vCode="code"
+    vColor='taux_de_participation'
+    if(type=='départements'):
+        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+            geojson = json.load(response)
+            dTauxFinal=calcul_taux_participation_departement(dYear)
+    elif(type=='communes'):
+        #dt={}
+        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+            geojson = json.load(response)
+            vCoordinates=trouve_chef_lieu(code)
+            vLat=float(vCoordinates[:12])
+            vLon=float(vCoordinates[14:])
+            vZoom=7
+            dTauxFinal=departmentQuery(code,dYear)
+            #dTauxFinal.applymap(str)
+            dTauxFinal['code_de_la_commune']=dTauxFinal['code_de_la_commune'].astype(str)
+            dTauxFinal=dTauxFinal.rename(columns={'code_de_la_commune':'code'})
+            dTauxFinal=dTauxFinal.reset_index()
+            zeros=''
+            vCompteur=0
+            for j in (dTauxFinal['code']):
+                if(len(str(j))==1):
+                    zeros='00'
+                elif(len(str(j))==2):
+                    zeros='0'
+                elif(len(str(j))==3):
+                    zeros=''
+                #j=int(code+zeros+str(j))
+                dTauxFinal.loc[vCompteur,'code']=str(code+zeros+str(j))
+                #print(j)
+                vCompteur=vCompteur+1
+            vColor='%_vot/ins'
+            #dTauxFinal=dTauxFinal.astype(str)
+            dTauxFinal.to_csv('test.csv')
+        
     print("Traçage de la map...")
     global map
-    map = px.choropleth_mapbox(dTauxFinal, geojson=departements, color="taux_de_participation",
+    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
                         locations="code", featureidkey="properties.code",
-                        center={"lat": 47.5, "lon": 2.6},
-                        mapbox_style="carto-positron", zoom=4.4
+                        center={"lat": vLat, "lon": vLon},
+                        mapbox_style="carto-positron", zoom=vZoom
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=800, height=400)
-    #map.show()
+    map.show()
     print("Map finie")
 
-draw_map(d171)
+#draw_map(d171,'départements')
+draw_map(d171,'communes')
 
 ###### Moyenne des voix 2012###########
 # joly = d121['%_voix/ins_joly']
@@ -244,7 +292,7 @@ app.layout = html.Div([
 )
 def update_figure(selected_departement, selected_year, selected_round): 
     global filtered_df
-    draw_map(d171)
+    draw_map(d171,'communes')
     for i,j  in year_name.items():
         if(i == selected_year[0]):
             if(selected_round == 'T1'):

@@ -129,18 +129,36 @@ def calcul_taux_participation_departement(dYear):
             vS=j
             vS=vS.replace(',','.')
             moyenne+=float(vS)
-
-        moyenne=moyenne/vD['%_vot/ins'].size
-
         if (vCompteur<10):
             i='0'+i
-        dT[i]=[moyenne]
+
+        dT[i]=[moyenne/vD['%_vot/ins'].size]
 
     dTaux=pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation'])
     dTaux=dTaux.reset_index()
     dTaux=dTaux.rename(columns={'index':'code'})
     return dTaux
-    
+
+def calcul_taux_participation_commune(dYear,code):
+    dTaux=departmentQuery(code,dYear)
+    dTaux=dTaux.rename(columns={'code_de_la_commune':'code'})
+    dTaux=dTaux.reset_index()
+    zeros=''
+    vCompteur=0
+    for j in (dTaux['code']):
+        if(len(str(j))==1):
+            zeros='00'
+        elif(len(str(j))==2):
+            zeros='0'
+        elif(len(str(j))==3):
+            zeros=''
+        dTaux.loc[vCompteur,'code']=str(code+zeros+str(j))
+        dTaux.loc[vCompteur,'%_vot/ins']=float(dTaux.loc[vCompteur,'%_vot/ins'].replace(',','.'))
+        vCompteur=vCompteur+1
+    dTaux['code']=dTaux['code'].astype(str)
+    dTaux['%_vot/ins']=dTaux['%_vot/ins'].astype(float)
+    return dTaux
+
 ############# map drawing ##########
 def draw_map(dYear,type,code='58'):
     print("Load de la map...")
@@ -159,25 +177,9 @@ def draw_map(dYear,type,code='58'):
         vLat=float(vCoordinates[:12])
         vLon=float(vCoordinates[14:])
         vZoom=7
-        dTauxFinal=departmentQuery(code,dYear)
-        dTauxFinal=dTauxFinal.rename(columns={'code_de_la_commune':'code'})
-        dTauxFinal=dTauxFinal.reset_index()
-        zeros=''
-        vCompteur=0
         vColor='%_vot/ins'
-        for j in (dTauxFinal['code']):
-            if(len(str(j))==1):
-                zeros='00'
-            elif(len(str(j))==2):
-                zeros='0'
-            elif(len(str(j))==3):
-                zeros=''
-            dTauxFinal.loc[vCompteur,'code']=str(code+zeros+str(j))
-            dTauxFinal.loc[vCompteur,'%_vot/ins']=float(dTauxFinal.loc[vCompteur,'%_vot/ins'].replace(',','.'))
-            vCompteur=vCompteur+1
-        dTauxFinal['code']=dTauxFinal['code'].astype(str)
-        dTauxFinal['%_vot/ins']=dTauxFinal['%_vot/ins'].astype(float)
-        
+        dTauxFinal=calcul_taux_participation_commune(dYear,code)
+ 
     print("Traçage de la map...")
     global map
     map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,

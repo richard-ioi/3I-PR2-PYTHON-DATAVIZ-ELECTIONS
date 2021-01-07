@@ -16,7 +16,6 @@ from dash.dependencies import Input, Output
 from urllib.request import urlopen
 from readFiles import normaliseNames
 from readFiles import departmentQuery
-#pd.options.mode.chained_assignment = None  # default='warn'
 
 #Department and region names
 department_names = {
@@ -71,7 +70,7 @@ url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/e
 url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
 url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
 
-urlChefLieux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
+urlChefLieux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/code_cheflieux.csv").content
 
 #read_1995=pd.read_excel (r'https://www.data.gouv.fr/fr/datasets/r/e44ed516-cd60-4c42-bb18-5a791c7431ec')
 #read_1995.to_csv(r'data/1995.csv',index=None,header=True)
@@ -117,10 +116,7 @@ d171 = d171.assign(year = "2017")
 
 
 def trouve_chef_lieu(code):
-    #vD=dChefLieux.query(f'code== "{code}"')
-    #vD=dChefLieux.query(f'code == "60"')
-    #return vD.loc['geom_x_y']
-    return '49.4365523321,2.08616123661'
+    return dChefLieux.query(f'code== "{code}"')['geom_x_y'].iloc[0]
 
 def calcul_taux_participation_departement(dYear):
     dT={}
@@ -129,7 +125,6 @@ def calcul_taux_participation_departement(dYear):
         vCompteur+=1
         vD=departmentQuery(i,dYear)
         moyenne=0
-        vS=''
         for j in (vD['%_vot/ins']):
             vS=j
             vS=vS.replace(',','.')
@@ -145,47 +140,43 @@ def calcul_taux_participation_departement(dYear):
     dTaux=dTaux.reset_index()
     dTaux=dTaux.rename(columns={'index':'code'})
     return dTaux
+    
 ############# map drawing ##########
-def draw_map(dYear,type,code='60'):
+def draw_map(dYear,type,code='58'):
     print("Load de la map...")
-    vLat=47.5
-    vLon=2.6
-    vZoom=4.4
-    vCode="code"
-    vColor='taux_de_participation'
     if(type=='départements'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
             geojson = json.load(response)
-            dTauxFinal=calcul_taux_participation_departement(dYear)
+        vLat=47.5
+        vLon=2.6
+        vZoom=4.4
+        vColor='taux_de_participation'
+        dTauxFinal=calcul_taux_participation_departement(dYear)
     elif(type=='communes'):
-        #dt={}
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
             geojson = json.load(response)
-            vCoordinates=trouve_chef_lieu(code)
-            vLat=float(vCoordinates[:12])
-            vLon=float(vCoordinates[14:])
-            vZoom=7
-            dTauxFinal=departmentQuery(code,dYear)
-            #dTauxFinal.applymap(str)
-            dTauxFinal['code_de_la_commune']=dTauxFinal['code_de_la_commune'].astype(str)
-            dTauxFinal=dTauxFinal.rename(columns={'code_de_la_commune':'code'})
-            dTauxFinal=dTauxFinal.reset_index()
-            zeros=''
-            vCompteur=0
-            for j in (dTauxFinal['code']):
-                if(len(str(j))==1):
-                    zeros='00'
-                elif(len(str(j))==2):
-                    zeros='0'
-                elif(len(str(j))==3):
-                    zeros=''
-                #j=int(code+zeros+str(j))
-                dTauxFinal.loc[vCompteur,'code']=str(code+zeros+str(j))
-                #print(j)
-                vCompteur=vCompteur+1
-            vColor='%_vot/ins'
-            #dTauxFinal=dTauxFinal.astype(str)
-            dTauxFinal.to_csv('test.csv')
+        vCoordinates=trouve_chef_lieu(code)
+        vLat=float(vCoordinates[:12])
+        vLon=float(vCoordinates[14:])
+        vZoom=7
+        dTauxFinal=departmentQuery(code,dYear)
+        dTauxFinal=dTauxFinal.rename(columns={'code_de_la_commune':'code'})
+        dTauxFinal=dTauxFinal.reset_index()
+        zeros=''
+        vCompteur=0
+        vColor='%_vot/ins'
+        for j in (dTauxFinal['code']):
+            if(len(str(j))==1):
+                zeros='00'
+            elif(len(str(j))==2):
+                zeros='0'
+            elif(len(str(j))==3):
+                zeros=''
+            dTauxFinal.loc[vCompteur,'code']=str(code+zeros+str(j))
+            dTauxFinal.loc[vCompteur,'%_vot/ins']=float(dTauxFinal.loc[vCompteur,'%_vot/ins'].replace(',','.'))
+            vCompteur=vCompteur+1
+        dTauxFinal['code']=dTauxFinal['code'].astype(str)
+        dTauxFinal['%_vot/ins']=dTauxFinal['%_vot/ins'].astype(float)
         
     print("Traçage de la map...")
     global map

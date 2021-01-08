@@ -14,10 +14,10 @@ import io
 import json
 from dash.dependencies import Input, Output
 from urllib.request import urlopen
-from readFiles import normaliseNames
-from readFiles import departmentQuery
+from appFunctions import normaliseNames
+from appFunctions import departmentQuery
 
-#Department and region names
+""" Dictionnary with department codes as keys and names as values """
 department_names = {
     '1': 'Ain', '2': 'Aisne', '3': 'Allier', '4': 'Alpes-de-Haute-Provence', '5': 'Hautes-Alpes','6': 'Alpes-Maritimes', 
     '7': 'Ardèche', '8': 'Ardennes', '9': 'Ariège', '10': 'Aube', '11': 'Aude','12': 'Aveyron', '13': 'Bouches-du-Rhône', 
@@ -35,6 +35,7 @@ department_names = {
     '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne', '95': 'Val-d\'Oise',
 }
 
+""" Dictionnary with department names as keys and department code arrays as values"""
 region_names = {
     'Auvergne-Rhône-Alpes': ['01', '03', '07', '15', '26', '38', '42', '43', '63', '69', '73', '74'],
     'Bourgogne-Franche-Comté': ['21', '25', '39', '58', '70', '71', '89', '90'],
@@ -55,7 +56,7 @@ region_names = {
     'Provence-Alpes-Côte d\'Azur': ['04', '05', '06', '13', '83', '84'],
 }
 
-###### importing csv data files ############
+"""importing csv data files """
 url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
 
 url2002T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T1.csv").content
@@ -162,53 +163,42 @@ def calcul_taux_participation_commune(dYear,code):
 ############# map drawing ##########
 def draw_map(dYear,type,code='58'):
     print("Load de la map...")
-    if(type=='départements'):
-        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-            geojson = json.load(response)
-        vLat=47.5
-        vLon=2.6
-        vZoom=4.4
-        vColor='taux_de_participation'
-        dTauxFinal=calcul_taux_participation_departement(dYear)
-    elif(type=='communes'):
-        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
-            geojson = json.load(response)
-        vCoordinates=trouve_chef_lieu(code)
-        vLat=float(vCoordinates[:12])
-        vLon=float(vCoordinates[14:])
-        vZoom=7
-        vColor='%_vot/ins'
-        dTauxFinal=calcul_taux_participation_commune(dYear,code)
+    # if(type=='départements'):
+    #     with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+    #         geojson = json.load(response)
+    #     vLat=47.5
+    #     vLon=2.6
+    #     vZoom=4.4
+    #     vColor='taux_de_participation'
+    #     #dTauxFinal=calcul_taux_participation_departement(dYear)
+    # elif(type=='communes'):
+    #     with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+    #         geojson = json.load(response)
+    #     vCoordinates=trouve_chef_lieu(code)
+    #     vLat=float(vCoordinates[:12])
+    #     vLon=float(vCoordinates[14:])
+    #     vZoom=7
+    #     vColor='%_vot/ins'
+    #     dTauxFinal=calcul_taux_participation_commune(dYear,code)
+    
  
     print("Traçage de la map...")
-    global map
-    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
-                        locations="code", featureidkey="properties.code",
-                        center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom
-                    )
-    map.update_geos(fitbounds="locations", visible=False)
-    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=800, height=400)
-    map.show()
+    # global map
+    # map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
+    #                     locations="code", featureidkey="properties.code",
+    #                     center={"lat": vLat, "lon": vLon},
+    #                     mapbox_style="carto-positron", zoom=vZoom
+    #                 )
+    # map.update_geos(fitbounds="locations", visible=False)
+    # map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+    #                 width=800, height=400)
+    #map.show()
     print("Map finie")
 
 #draw_map(d171,'départements')
-draw_map(d171,'communes')
+#draw_map(d171,'communes')
 
-###### Moyenne des voix 2012###########
-# joly = d121['%_voix/ins_joly']
 
-# voixJoly = [voix for voix in joly]
-# voixJoly = commaToDot(voixJoly)
-# #voixJoly = stringToFloat(voixJoly)
-# print(voixJoly[:15])
-# floatJoly=[]
-# for i in range (1, len(voixJoly)):
-#     i = float(i)
-#     floatJoly.append(i)
-# moyenneJoly = mean(floatJoly)
-# print(moyenneJoly)
 year_name = {
     1995 : [d951, d952],
     2002 : [d021, d022],
@@ -237,7 +227,8 @@ app.layout = html.Div([
                 options=[
                     {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
                 ],
-                placeholder="Départements"
+                placeholder="Départements",
+                value='1'
             )
         ]
     ),
@@ -250,15 +241,25 @@ app.layout = html.Div([
                     {'label': 'Second tour', 'value': 'T2'}
                 ],
                 value="T1"
-             )
+            ),
+            html.P(children='''
+                Echelle
+                '''),
+            dcc.RadioItems(
+                id="map-scale",
+                options=[
+                {'label': 'Nationale', 'value': 'fr'},
+                {'label': 'Départementale', 'value': 'dep'}
+                ],
+                value='fr'
+            ) 
         ]
     ), 
     html.Div(
         children=[
-            dcc.Graph(figure=map), 
+            dcc.Graph(id='map-box'), 
             html.Br(),
             dcc.Graph(id='test-graph'),
-
             html.P("Selectionner l'année"),
             dcc.RangeSlider(
                 id='year-slider',
@@ -279,20 +280,19 @@ app.layout = html.Div([
 ])
 @app.callback(
    Output('test-graph', 'figure'),
+   #Output('map-box', 'figure'),
    Input('departements', 'value'),
    Input('year-slider', 'value'),
    Input('round-select', 'value'),
 )
 def update_figure(selected_departement, selected_year, selected_round): 
     global filtered_df
-    draw_map(d171,'communes')
     for i,j  in year_name.items():
         if(i == selected_year[0]):
             if(selected_round == 'T1'):
                 filtered_df = departmentQuery(selected_departement, j[0])
             elif(selected_round == 'T2'):
                 filtered_df = departmentQuery(selected_departement, j[1])
-            #map.update_layout(center={"lat": 47.5, "lon": 2.0}, zoom=7)
 
     fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig.update_layout(
@@ -301,7 +301,60 @@ def update_figure(selected_departement, selected_year, selected_round):
     )
 
     return fig
+@app.callback(
+    Output('map-box', 'figure'),
+    Input('year-slider', 'value'),
+    Input('round-select', 'value'),
+    Input('map-scale', 'value'),
+    Input('departements', 'value')
+)
+def update_graph(selected_year, selected_round, selected_scale, selected_departement):
+    global map
+    global geo
+    global dTauxFinal
+    ########### REPRESENTATION ECHELLE NATIONALE ######################
+    if(selected_scale =='fr'):
+        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+            geo = json.load(response)
+            vLat=47.5
+            vLon=2.6
+            vZoom=4.4
+            vColor='taux_de_participation'
+        for i,j  in year_name.items():
+            if(i == selected_year[0]):
+                if(selected_round == 'T1'):
+                    dTauxFinal=calcul_taux_participation_departement(j[0])
+                elif(selected_round == 'T2'):
+                    dTauxFinal=calcul_taux_participation_departement(j[1])
+    ############# REPRESNETATION DEPARTEMENTALE ############################    
+    elif(selected_scale =='dep'):
+        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+selected_departement+'.geojson') as response:
+            geo = json.load(response)
+        vCoordinates=trouve_chef_lieu(selected_departement)
+        print(selected_departement)
+        vLat=float(vCoordinates[:12])
+        vLon=float(vCoordinates[14:])
+        vZoom=7
+        vColor='%_vot/ins'
+        #dTauxFinal=calcul_taux_participation_commune(dYear,code)
+        for i,j  in year_name.items():
+            if(i == selected_year[0]):
+                if(selected_round == 'T1'):
+                    dTauxFinal=calcul_taux_participation_commune(j[0],selected_departement)
+                    #app_map = draw_map(j[0], 'départements')
+                elif(selected_round == 'T2'):
+                    dTauxFinal=calcul_taux_participation_commune(j[1], selected_departement)
 
+    ################ TRACAGE DE LA MAP ###########################
+    map = px.choropleth_mapbox(dTauxFinal, geojson=geo, color=vColor,
+                        locations="code", featureidkey="properties.code",
+                        center={"lat": vLat, "lon": vLon},
+                        mapbox_style="carto-positron", zoom=vZoom
+                    )
+    map.update_geos(fitbounds="locations", visible=False)
+    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+                    width=800, height=400)
+    return map
 if __name__ == '__main__':
     print("Chargement des données...")
     print("Rendez-vous sur localhost:8051 pour finir le chargement des données (recharger la page si erreur)")

@@ -3,7 +3,7 @@
 # Run this app with `python app.py` and
 # visit localhost:8051/ in your web browser.
 
-############ imports ###########
+""" imports """
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 import io
 import json
+import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from urllib.request import urlopen
 from appFunctions import normaliseNames
@@ -109,14 +110,22 @@ d122.columns = normaliseNames(d122)
 d171.columns = normaliseNames(d171)
 d172.columns = normaliseNames(d172)
 
-d951 = d951.assign(year = "1995")
-d021 = d021.assign(year = "2002")
-d071 = d071.assign(year = "2007")
-d121 = d121.assign(year = "2012")
-d171 = d171.assign(year = "2017")
+# d951 = d951.assign(year = "1995")
+# d021 = d021.assign(year = "2002")
+# d071 = d071.assign(year = "2007")
+# d121 = d121.assign(year = "2012")
+# d171 = d171.assign(year = "2017")
 
 
 def trouve_chef_lieu(code):
+    """Queries dChefLieux to create a sub-frame depending on the selected departement
+
+    Parameters:
+    code(string): the code of the required departement, a number between 1 ad 95
+
+    Returns:
+    object: sub-frame holding data from the selected departement
+    """
     return dChefLieux.query(f'code== "{code}"')['geom_x_y'].iloc[0]
 
 def calcul_taux_participation_departement(dYear):
@@ -161,44 +170,43 @@ def calcul_taux_participation_commune(dYear,code):
     return dTaux
 
 ############# map drawing ##########
-def draw_map(dYear,type,code='58'):
+def draw_map(dYear,type,code='02'):
     print("Load de la map...")
-    # if(type=='départements'):
-    #     with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-    #         geojson = json.load(response)
-    #     vLat=47.5
-    #     vLon=2.6
-    #     vZoom=4.4
-    #     vColor='taux_de_participation'
-    #     #dTauxFinal=calcul_taux_participation_departement(dYear)
-    # elif(type=='communes'):
-    #     with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
-    #         geojson = json.load(response)
-    #     vCoordinates=trouve_chef_lieu(code)
-    #     vLat=float(vCoordinates[:12])
-    #     vLon=float(vCoordinates[14:])
-    #     vZoom=7
-    #     vColor='%_vot/ins'
-    #     dTauxFinal=calcul_taux_participation_commune(dYear,code)
+    if(type=='départements'):
+        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+            geojson = json.load(response)
+        vLat=47.5
+        vLon=2.6
+        vZoom=4.4
+        vColor='taux_de_participation'
+        dTauxFinal=calcul_taux_participation_departement(dYear)
+    elif(type=='communes'):
+        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+            geojson = json.load(response)
+        vCoordinates=trouve_chef_lieu(code)
+        vLat=float(vCoordinates[:12])
+        vLon=float(vCoordinates[14:])
+        vZoom=7
+        vColor='%_vot/ins'
+        dTauxFinal=calcul_taux_participation_commune(dYear,code)
     
  
     print("Traçage de la map...")
-    # global map
-    # map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
-    #                     locations="code", featureidkey="properties.code",
-    #                     center={"lat": vLat, "lon": vLon},
-    #                     mapbox_style="carto-positron", zoom=vZoom
-    #                 )
-    # map.update_geos(fitbounds="locations", visible=False)
-    # map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-    #                 width=800, height=400)
+    global map
+    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
+                        locations="code", featureidkey="properties.code",
+                        center={"lat": vLat, "lon": vLon},
+                        mapbox_style="carto-positron", zoom=vZoom
+                    )
+    map.update_geos(fitbounds="locations", visible=False)
+    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+                    width=800, height=400)
     #map.show()
     print("Map finie")
+draw_map(d171, 'communes')
+################# HISTORGRAM #####################
 
-#draw_map(d171,'départements')
-#draw_map(d171,'communes')
-
-
+"""Dictionnary with years ans keys and an array of the associated dataframes as values"""
 year_name = {
     1995 : [d951, d952],
     2002 : [d021, d022],
@@ -214,52 +222,64 @@ app.layout = html.Div([
     html.P(children='''
         Dash: A web application framework for Python.
     '''),
-    html.Div(
-        children=[
-            #dcc.Graph(figure=fig)
+
+    html.Div(className='inline-graph',
+        #children=[
+            #html.Div( 
+                children=[
+                    # html.Div(
+                    #     className='drop-down-year',
+                    #     children=[ 
+                            
+                    #     ]
+                    # ),
+                    html.Div(
+                        children=[
+                            dcc.Dropdown(
+                                id='departements',
+                                options=[
+                                    {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
+                                ],
+                                placeholder="Départements",
+                                value='1'
+                            ),
+                            dcc.Dropdown(
+                                id='round-select',
+                                options=[
+                                    {'label': 'Premier tour', 'value': 'T1'},
+                                    {'label': 'Second tour', 'value': 'T2'}
+                                ],
+                                value="T1"
+                            ),
+                            html.P(children='''
+                                    Echelle
+                            '''),
+                            dcc.RadioItems(
+                                id="map-scale",
+                                options=[
+                                    {'label': 'Nationale', 'value': 'fr'},
+                                    {'label': 'Départementale', 'value': 'dep'}
+                                ],
+                                value='fr'
+                            ) 
+                        ]
+                    ),
+                #]
+            #),
+            
+            html.Div([
+                dcc.Graph(id='map-box')
+            ]),
+            html.Div([
+                dcc.Graph(id='test-graph')
+            ]),
+            html.Div([
+                dcc.Graph(id='histogram')
+            ])  
         ]
     ),
     html.Div(
-        className='drop-down-year',
-        children=[
-            dcc.Dropdown(
-                id='departements',
-                options=[
-                    {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
-                ],
-                placeholder="Départements",
-                value='1'
-            )
-        ]
-    ),
-    html.Div(
-        children=[
-            dcc.Dropdown(
-                id='round-select',
-                options=[
-                    {'label': 'Premier tour', 'value': 'T1'},
-                    {'label': 'Second tour', 'value': 'T2'}
-                ],
-                value="T1"
-            ),
-            html.P(children='''
-                Echelle
-                '''),
-            dcc.RadioItems(
-                id="map-scale",
-                options=[
-                {'label': 'Nationale', 'value': 'fr'},
-                {'label': 'Départementale', 'value': 'dep'}
-                ],
-                value='fr'
-            ) 
-        ]
-    ), 
-    html.Div(
-        children=[
-            dcc.Graph(id='map-box'), 
-            html.Br(),
-            dcc.Graph(id='test-graph'),
+        children =[
             html.P("Selectionner l'année"),
             dcc.RangeSlider(
                 id='year-slider',
@@ -274,13 +294,11 @@ app.layout = html.Div([
                     2017: '2017'
                 },
                 value=[1995]
-            )  
-        ]
-    )
+            )
+    ])
 ])
 @app.callback(
    Output('test-graph', 'figure'),
-   #Output('map-box', 'figure'),
    Input('departements', 'value'),
    Input('year-slider', 'value'),
    Input('round-select', 'value'),
@@ -294,13 +312,45 @@ def update_figure(selected_departement, selected_year, selected_round):
             elif(selected_round == 'T2'):
                 filtered_df = departmentQuery(selected_departement, j[1])
 
-    fig = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
-    fig.update_layout(
+    fig1 = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
+    fig1.update_layout(
         margin=dict(l=20, r=20, t=30, b=20),
         paper_bgcolor="LightSteelBlue",
     )
+    return fig1
+@app.callback(
+    Output('histogram', 'figure'),
+    Input('departements', 'value'),
+    Input('round-select', 'value')
+)
+def update_historgram(selected_departement, selected_round):
+    global x0, x1, x2, x3, x4
+    #for i,j  in year_name.items():
+    if(selected_round == 'T1'):
+            x0 = departmentQuery(selected_departement, d951)
+            x1 = departmentQuery(selected_departement, d021)
+            x2 = departmentQuery(selected_departement, d071)
+            x3 = departmentQuery(selected_departement, d121)
+            x4 = departmentQuery(selected_departement, d171)
+    elif(selected_round == 'T2'):
+            x0 = departmentQuery(selected_departement, d952)
+            x1 = departmentQuery(selected_departement, d022)
+            x2 = departmentQuery(selected_departement, d072)
+            x3 = departmentQuery(selected_departement, d122)
+            x4 = departmentQuery(selected_departement, d172)    
+    
+    fig= go.Figure()
+    fig.add_trace(go.Histogram(x = x0['%_vot/ins']))
+    fig.add_trace(go.Histogram(x = x1['%_vot/ins']))
+    fig.add_trace(go.Histogram(x = x2['%_vot/ins']))
+    fig.add_trace(go.Histogram(x = x3['%_vot/ins']))
+    fig.add_trace(go.Histogram(x = x4['%_vot/ins']))
+
+    fig.update_layout(barmode='overlay')
+    fig.update_traces(opacity=0.50)
 
     return fig
+
 @app.callback(
     Output('map-box', 'figure'),
     Input('year-slider', 'value'),
@@ -311,7 +361,7 @@ def update_figure(selected_departement, selected_year, selected_round):
 def update_graph(selected_year, selected_round, selected_scale, selected_departement):
     global map
     global geo
-    global dTauxFinal
+    #global dTauxFinal
     ########### REPRESENTATION ECHELLE NATIONALE ######################
     if(selected_scale =='fr'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
@@ -330,18 +380,16 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
     elif(selected_scale =='dep'):
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+selected_departement+'.geojson') as response:
             geo = json.load(response)
-        vCoordinates=trouve_chef_lieu(selected_departement)
-        print(selected_departement)
-        vLat=float(vCoordinates[:12])
-        vLon=float(vCoordinates[14:])
-        vZoom=7
-        vColor='%_vot/ins'
-        #dTauxFinal=calcul_taux_participation_commune(dYear,code)
+            vCoordinates=trouve_chef_lieu(selected_departement)
+            print(selected_departement)
+            vLat=float(vCoordinates[:12])
+            vLon=float(vCoordinates[14:])
+            vZoom=7
+            vColor='%_vot/ins'
         for i,j  in year_name.items():
             if(i == selected_year[0]):
                 if(selected_round == 'T1'):
                     dTauxFinal=calcul_taux_participation_commune(j[0],selected_departement)
-                    #app_map = draw_map(j[0], 'départements')
                 elif(selected_round == 'T2'):
                     dTauxFinal=calcul_taux_participation_commune(j[1], selected_departement)
 
@@ -353,7 +401,7 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=800, height=400)
+                    width=600, height=400)
     return map
 if __name__ == '__main__':
     print("Chargement des données...")

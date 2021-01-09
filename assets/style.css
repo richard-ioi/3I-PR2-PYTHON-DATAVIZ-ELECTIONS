@@ -2,16 +2,31 @@
     width : 500px;
     float: left;
 }
+#map-box{
+    margin : 10px;
+}
 #test-graph{
     width : 600px;
     position: relative;
-    float: right;
 }
 #test-dropdown{
     width : 100px;
 }
+#departements{
+    width : 200px;
+}
+#round-select{
+    width: 200px;
+}
 .drop-down-year{
     width: 600px;
+}
+.inline-graph{
+    display: flex;
+}
+.option-display{
+    /*display: flex;*/ 
+    display: block;  
 }
 
 h1{

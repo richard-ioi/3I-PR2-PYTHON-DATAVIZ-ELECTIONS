@@ -17,6 +17,7 @@ from dash.dependencies import Input, Output
 from urllib.request import urlopen
 from appFunctions import normaliseNames
 from appFunctions import departmentQuery
+from appFunctions import commaToDot
 
 """ Dictionnary with department codes as keys and names as values """
 department_names = {
@@ -109,13 +110,6 @@ d121.columns = normaliseNames(d121)
 d122.columns = normaliseNames(d122)
 d171.columns = normaliseNames(d171)
 d172.columns = normaliseNames(d172)
-
-# d951 = d951.assign(year = "1995")
-# d021 = d021.assign(year = "2002")
-# d071 = d071.assign(year = "2007")
-# d121 = d121.assign(year = "2012")
-# d171 = d171.assign(year = "2017")
-
 
 def trouve_chef_lieu(code):
     """Queries dChefLieux to create a sub-frame depending on the selected departement
@@ -215,24 +209,26 @@ year_name = {
     2017 : [d171, d172]
 }
 ############## dash app ############
-app = dash.Dash(__name__, title="Analyse des données d'élections")
+app = dash.Dash(__name__, title="Elections Présidentielles")
 app.layout = html.Div([
-    html.H1(children='Elections présidentielles françaises de 1995 à 2017'),
-  
-    html.P(children='''
-        Dash: A web application framework for Python.
-    '''),
-
+    html.Div( className='app-header',
+            children=[
+                html.H1(children='Elections présidentielles françaises'),
+                html.H2(children='de 1995 à 2017'),
+            
+                html.P(children='''
+                    Cette application a été conçue dans le but d'analyser 
+                    les résultats des élections présidentielles en France métropolitaine.
+                '''),
+                html.P(children='''
+                    Grâce aux divers menus, vous pourez mettre en évidence les disparités 
+                    des votes à échelle nationale ou départementale au cours des 5 dernières élections.
+                ''')
+            ]
+    ),
+    
     html.Div(className='inline-graph',
-        #children=[
-            #html.Div( 
                 children=[
-                    # html.Div(
-                    #     className='drop-down-year',
-                    #     children=[ 
-                            
-                    #     ]
-                    # ),
                     html.Div(
                         children=[
                             dcc.Dropdown(
@@ -261,41 +257,34 @@ app.layout = html.Div([
                                     {'label': 'Départementale', 'value': 'dep'}
                                 ],
                                 value='fr'
-                            ) 
+                            ),  
+                            html.P("Selectionner l'année"),
+                            dcc.RangeSlider(
+                                id='year-slider',
+                                min=1995,
+                                max=2017,
+                                step=None,
+                                marks={
+                                    1995: '1995',
+                                    2002: '2002',
+                                    2007: '2007',
+                                    2012: '2012',
+                                    2017: '2017'
+                                },
+                                value=[1995]
+                            )
                         ]
                     ),
-                #]
-            #),
             
             html.Div([
                 dcc.Graph(id='map-box')
             ]),
             html.Div([
-                dcc.Graph(id='test-graph')
-            ]),
-            html.Div([
+                dcc.Graph(id='test-graph'),
                 dcc.Graph(id='histogram')
             ])  
         ]
-    ),
-    html.Div(
-        children =[
-            html.P("Selectionner l'année"),
-            dcc.RangeSlider(
-                id='year-slider',
-                min=1995,
-                max=2017,
-                step=None,
-                marks={
-                    1995: '1995',
-                    2002: '2002',
-                    2007: '2007',
-                    2012: '2012',
-                    2017: '2017'
-                },
-                value=[1995]
-            )
-    ])
+    )
 ])
 @app.callback(
    Output('test-graph', 'figure'),
@@ -324,6 +313,14 @@ def update_figure(selected_departement, selected_year, selected_round):
     Input('round-select', 'value')
 )
 def update_historgram(selected_departement, selected_round):
+    """Renders a histogram showing the participation rate over the past 5 elections
+    Parameters:
+    selected_departement(string): the value of the department selected from the 'departements' dropdown menu
+    selected_round(string): the value of the round selected from the 'round-select' dropdown menu
+
+    Returns:
+    Figure containing 5 overlaid histograms, 4 of which are masked upon launching the app
+    """
     global x0, x1, x2, x3, x4
     #for i,j  in year_name.items():
     if(selected_round == 'T1'):
@@ -338,17 +335,27 @@ def update_historgram(selected_departement, selected_round):
             x2 = departmentQuery(selected_departement, d072)
             x3 = departmentQuery(selected_departement, d122)
             x4 = departmentQuery(selected_departement, d172)    
-    
+
     fig= go.Figure()
-    fig.add_trace(go.Histogram(x = x0['%_vot/ins']))
-    fig.add_trace(go.Histogram(x = x1['%_vot/ins']))
-    fig.add_trace(go.Histogram(x = x2['%_vot/ins']))
-    fig.add_trace(go.Histogram(x = x3['%_vot/ins']))
-    fig.add_trace(go.Histogram(x = x4['%_vot/ins']))
-
-    fig.update_layout(barmode='overlay')
+    fig.add_trace(go.Histogram(name='1995', x = commaToDot(x0['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2002', visible='legendonly', x = commaToDot(x1['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2007', visible='legendonly', x = commaToDot(x2['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2012', visible='legendonly', x = commaToDot(x3['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2017', visible='legendonly', x = commaToDot(x4['%_vot/ins'])))
+    fig.update_layout(barmode='overlay',
+                        title={
+                            'text': "Taux de participation dans le "+str(selected_departement)+" entre 1995 et 2017",
+                            'y':0.85,
+                            'x':0.5,
+                            'xanchor': 'center',
+                            'yanchor': 'top'},
+                        legend=dict(
+                            yanchor="top",
+                            y=0.99,
+                            xanchor="left",
+                            x=0.01))
     fig.update_traces(opacity=0.50)
-
+    print(type(fig))
     return fig
 
 @app.callback(
@@ -359,9 +366,19 @@ def update_historgram(selected_departement, selected_round):
     Input('departements', 'value')
 )
 def update_graph(selected_year, selected_round, selected_scale, selected_departement):
+    """ Renders the map of France showing the participation rate of each department or town depending on the chosen scale
+
+    Parameters:
+    selected_year(): 
+    selected_round()
+    selected_scale()
+    selected_departement()
+
+    Returns 
+    Figure holding the Choropleth map of France
+    """
     global map
     global geo
-    #global dTauxFinal
     ########### REPRESENTATION ECHELLE NATIONALE ######################
     if(selected_scale =='fr'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
@@ -397,11 +414,12 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
     map = px.choropleth_mapbox(dTauxFinal, geojson=geo, color=vColor,
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom
+                        mapbox_style="carto-positron", zoom=vZoom, 
+                        color_discrete_sequence=px.colors.diverging.Earth
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=600, height=400)
+                    width=600, height=700)
     return map
 if __name__ == '__main__':
     print("Chargement des données...")

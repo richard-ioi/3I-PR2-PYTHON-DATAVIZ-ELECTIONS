@@ -1,22 +1,32 @@
+*{font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;;}
+
 #year-slider{
-    width : 500px;
+    width : 200px;
     float: left;
 }
 #map-box{
     margin : 10px;
 }
 #test-graph{
-    width : 600px;
+    width : 400px;
+    height: 200px;
     position: relative;
+}
+#histogram{
+    width: 500px;
+    height: 400px;
 }
 #test-dropdown{
     width : 100px;
+    margin: 100px;
 }
 #departements{
     width : 200px;
+    margin: 20px 0px 20px 10px;
 }
 #round-select{
     width: 200px;
+    margin: 20px 0px 20px 10px;
 }
 .drop-down-year{
     width: 600px;
@@ -28,10 +38,26 @@
     /*display: flex;*/ 
     display: block;  
 }
-
-h1{
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+.app-header{
+    background-color:#010442;
+    color: white;
+    padding-bottom: 20px;
+    border-radius: 0px 0px 25px 25px;
 }
-p{
+.app-header h1{
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    padding: 50px 0px 15px 20px;
+    margin-left: 30%;
+    
+}
+.app-header h2{
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    padding-left: 55px;
+    margin-top: -40px;
+    margin-left: 35%;
+}
+.app-header p{
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    padding-left: 55px ;
+    font-size: 12px;
 }

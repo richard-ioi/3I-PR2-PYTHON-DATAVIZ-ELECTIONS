@@ -144,7 +144,11 @@ def calcul_taux_participation_departement(dYear):
     return dTaux
 
 def calcul_taux_participation_commune(dYear,code):
-    dTaux=departmentQuery(code,dYear)
+    dep=code
+    if(code[0]=='0'):
+        dep=code[1]
+    print("DEPARTEMENT SELECTIONNE "+dep)
+    dTaux=departmentQuery(dep,dYear)
     dTaux=dTaux.rename(columns={'code_de_la_commune':'code'})
     dTaux=dTaux.reset_index()
     zeros=''
@@ -164,7 +168,7 @@ def calcul_taux_participation_commune(dYear,code):
     return dTaux
 
 ############# map drawing ##########
-def draw_map(dYear,type,code='02'):
+def draw_map(dYear,type,code='07'):
     print("Load de la map...")
     if(type=='départements'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
@@ -197,7 +201,7 @@ def draw_map(dYear,type,code='02'):
                     width=800, height=400)
     #map.show()
     print("Map finie")
-draw_map(d171, 'communes')
+#draw_map(d171, 'communes')
 ################# HISTORGRAM #####################
 
 """Dictionnary with years ans keys and an array of the associated dataframes as values"""
@@ -420,8 +424,11 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=600, height=700)
+    map.show()
     return map
+
 if __name__ == '__main__':
     print("Chargement des données...")
     print("Rendez-vous sur localhost:8051 pour finir le chargement des données (recharger la page si erreur)")
+    print("..**.")
     app.run_server(debug=True, port=8051)

@@ -183,40 +183,40 @@ def calcul_taux_participation_commune(dYear,code):
     return dTaux
 
 ############# map drawing ##########
-# def draw_map(dYear,type,code='02'):
-#     print("Load de la map...")
-#     if(type=='départements'):
-#         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-#             geojson = json.load(response)
-#         vLat=47.5
-#         vLon=2.6
-#         vZoom=4.4
-#         vColor='taux_de_participation'
-#         dTauxFinal=calcul_taux_participation_departement(dYear)
-#     elif(type=='communes'):
-#         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
-#             geojson = json.load(response)
-#         vCoordinates=trouve_chef_lieu(code)
-#         vLat=float(vCoordinates[:12])
-#         vLon=float(vCoordinates[14:])
-#         vZoom=7
-#         vColor='%_vot/ins'
-#         dTauxFinal=calcul_taux_participation_commune(dYear,code)
+def draw_map(dYear,type,code='02'):
+    print("Load de la map...")
+    if(type=='départements'):
+        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+            geojson = json.load(response)
+        vLat=47.5
+        vLon=2.6
+        vZoom=4.4
+        vColor='taux_de_participation'
+        dTauxFinal=calcul_taux_participation_departement(dYear)
+    elif(type=='communes'):
+        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+            geojson = json.load(response)
+        vCoordinates=trouve_chef_lieu(code)
+        vLat=float(vCoordinates[:12])
+        vLon=float(vCoordinates[14:])
+        vZoom=7
+        vColor='%_vot/ins'
+        dTauxFinal=calcul_taux_participation_commune(dYear,code)
     
  
-#     print("Traçage de la map...")
-#     global map
-#     map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
-#                         locations="code", featureidkey="properties.code",
-#                         center={"lat": vLat, "lon": vLon},
-#                         mapbox_style="carto-positron", zoom=vZoom
-#                     )
-#     map.update_geos(fitbounds="locations", visible=False)
-#     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-#                     width=800, height=400)
-#     #map.show()
-#     print("Map finie")
-# draw_map(d171, 'communes')
+    print("Traçage de la map...")
+    global map
+    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
+                        locations="code", featureidkey="properties.code",
+                        center={"lat": vLat, "lon": vLon},
+                        mapbox_style="carto-positron", zoom=vZoom
+                    )
+    map.update_geos(fitbounds="locations", visible=False)
+    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+                    width=800, height=400)
+    #map.show()
+    print("Map finie")
+draw_map(d171, 'communes')
 
 
 
@@ -385,7 +385,7 @@ def update_historgram(selected_departement, selected_round):
     Input('map-scale', 'value'),
     Input('departements', 'value')
 )
-def update_graph(selected_year, selected_round, selected_scale, selected_departement):
+def update_map(selected_year, selected_round, selected_scale, selected_departement):
     """ Renders the map of France showing the participation rate of each department or town depending on the chosen scale
 
     Parameters:
@@ -415,20 +415,26 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
                     dTauxFinal=calcul_taux_participation_departement(j[1])
     ############# REPRESNETATION DEPARTEMENTALE ############################    
     elif(selected_scale =='dep'):
-        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+selected_departement+'.geojson') as response:
+        depart = selected_departement
+        for i in range(1, 10):
+            if(depart == str(i)):
+                depart = '0'+str(i)
+                print("le dep selec est mtn :" + str(depart))
+        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+depart+'.geojson') as response:
             geo = json.load(response)
-            vCoordinates=trouve_chef_lieu(selected_departement)
-            print(selected_departement)
+            vCoordinates=trouve_chef_lieu(depart)
+            print(depart)
             vLat=float(vCoordinates[:12])
             vLon=float(vCoordinates[14:])
             vZoom=7
             vColor='%_vot/ins'
+
         for i,j  in year_name.items():
             if(i == selected_year[0]):
                 if(selected_round == 'T1'):
-                    dTauxFinal=calcul_taux_participation_commune(j[0],selected_departement)
+                    dTauxFinal=calcul_taux_participation_commune(j[0],depart)
                 elif(selected_round == 'T2'):
-                    dTauxFinal=calcul_taux_participation_commune(j[1], selected_departement)
+                    dTauxFinal=calcul_taux_participation_commune(j[1], depart)
 
     ################ TRACAGE DE LA MAP ###########################
     map = px.choropleth_mapbox(dTauxFinal, geojson=geo, color=vColor,
@@ -440,7 +446,7 @@ def update_graph(selected_year, selected_round, selected_scale, selected_departe
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=600, height=700)
-    map.show()
+    #map.show()
     return map
 
 if __name__ == '__main__':

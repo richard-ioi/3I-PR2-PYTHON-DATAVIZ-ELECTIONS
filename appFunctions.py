@@ -8,7 +8,7 @@ def normaliseNames(name):
     object:Modified dataframe 
 
    """
-    return name.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_')
+    return name.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_').str.replace('.', '_')
 
 def commaToDot(data):
     """ Replaces commas by dots to enable string to float conversions. Use only on columns holding numbers and not letters
@@ -37,3 +37,8 @@ def departmentQuery(code, name):
     object: sub-frame holding data from the selected departement
     """
     return name.query(f'code_du_département == "{code}"')
+
+def candidateData(data_frame, name):
+    """Gathers all the columns relating to the chosen candidate
+    """
+    return data_frame.columns.replace('.', name)

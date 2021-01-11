@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 import io
 import json
+import numpy
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from urllib.request import urlopen
@@ -111,6 +112,20 @@ d122.columns = normaliseNames(d122)
 d171.columns = normaliseNames(d171)
 d172.columns = normaliseNames(d172)
 
+#voix_candidats = {d951['nom']:}
+moyenne_voix = []
+voixJoly = [voix for voix in d951['voix']]
+voixJoly = commaToDot(voixJoly)
+#voixJoly = float(voixJoly)
+print(voixJoly[:15])
+floatJoly=[]
+	
+for i in range (1, len(voixJoly)):
+    floatJoly.append(float(i))
+
+moyenneJoly = numpy.mean(floatJoly)
+print(moyenneJoly)
+
 def trouve_chef_lieu(code):
     """Queries dChefLieux to create a sub-frame depending on the selected departement
 
@@ -164,41 +179,43 @@ def calcul_taux_participation_commune(dYear,code):
     return dTaux
 
 ############# map drawing ##########
-def draw_map(dYear,type,code='02'):
-    print("Load de la map...")
-    if(type=='départements'):
-        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-            geojson = json.load(response)
-        vLat=47.5
-        vLon=2.6
-        vZoom=4.4
-        vColor='taux_de_participation'
-        dTauxFinal=calcul_taux_participation_departement(dYear)
-    elif(type=='communes'):
-        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
-            geojson = json.load(response)
-        vCoordinates=trouve_chef_lieu(code)
-        vLat=float(vCoordinates[:12])
-        vLon=float(vCoordinates[14:])
-        vZoom=7
-        vColor='%_vot/ins'
-        dTauxFinal=calcul_taux_participation_commune(dYear,code)
+# def draw_map(dYear,type,code='02'):
+#     print("Load de la map...")
+#     if(type=='départements'):
+#         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+#             geojson = json.load(response)
+#         vLat=47.5
+#         vLon=2.6
+#         vZoom=4.4
+#         vColor='taux_de_participation'
+#         dTauxFinal=calcul_taux_participation_departement(dYear)
+#     elif(type=='communes'):
+#         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+#             geojson = json.load(response)
+#         vCoordinates=trouve_chef_lieu(code)
+#         vLat=float(vCoordinates[:12])
+#         vLon=float(vCoordinates[14:])
+#         vZoom=7
+#         vColor='%_vot/ins'
+#         dTauxFinal=calcul_taux_participation_commune(dYear,code)
     
  
-    print("Traçage de la map...")
-    global map
-    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
-                        locations="code", featureidkey="properties.code",
-                        center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom
-                    )
-    map.update_geos(fitbounds="locations", visible=False)
-    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=800, height=400)
-    #map.show()
-    print("Map finie")
-draw_map(d171, 'communes')
-################# HISTORGRAM #####################
+#     print("Traçage de la map...")
+#     global map
+#     map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
+#                         locations="code", featureidkey="properties.code",
+#                         center={"lat": vLat, "lon": vLon},
+#                         mapbox_style="carto-positron", zoom=vZoom
+#                     )
+#     map.update_geos(fitbounds="locations", visible=False)
+#     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+#                     width=800, height=400)
+#     #map.show()
+#     print("Map finie")
+# draw_map(d171, 'communes')
+
+
+
 
 """Dictionnary with years ans keys and an array of the associated dataframes as values"""
 year_name = {
@@ -355,7 +372,6 @@ def update_historgram(selected_departement, selected_round):
                             xanchor="left",
                             x=0.01))
     fig.update_traces(opacity=0.50)
-    print(type(fig))
     return fig
 
 @app.callback(

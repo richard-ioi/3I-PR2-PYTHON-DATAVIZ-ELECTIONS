@@ -99,7 +99,7 @@ d171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False
 d172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
 
 dChefLieux = pd.read_csv(io.StringIO(urlChefLieux.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-
+#dChefLieux.to_csv(r'data/chefLieux.csv',index=None,header=True)
 #removes disruptive characters from column names of csv files, lowers all characters
 d951.columns = normaliseNames(d951)
 d952.columns = normaliseNames(d952)
@@ -111,21 +111,130 @@ d121.columns = normaliseNames(d121)
 d122.columns = normaliseNames(d122)
 d171.columns = normaliseNames(d171)
 d172.columns = normaliseNames(d172)
+"""Dictionnary with years as keys and an array of the associated dataframes as values"""
+year_name = {
+    1995 : [d951, d952],
+    2002 : [d021, d022],
+    2007 : [d071, d072],
+    2012 : [d121, d122],
+    2017 : [d171, d172]
+}
+year_can = {
+    1995 : [d951, d952],
+    2002 : [d021, d022],
+    2007 : [d071, d072],
+    2012 : [d121, d122]
+}
+"""Dictonnary with order in csv as keys and names of candidates as values for 1995"""
+candidats_1995 = {'':'Philippe de Villier',
+            '1' : 'Jean-Marie Lepen',
+            '2' : 'Jacques Chirac',
+            '3' : 'Arlette Laguiller',
+            '4' : 'Jacques Cheminade',
+            '5' : 'Lionel Jospin',
+            '6' : 'Dominique Voynet',
+            '7' : 'Edourd Balladur',
+            '8' : 'Robert Hue'
+}
+"""Dictonnary with order in csv as keys and names of candidates as values for 2002"""
+candidats_2002 = { '' : 'Bruno Megret',
+                    '1' : 'Corrine Lepage',
+                    '2' : 'Daniel Gluckstein',
+                    '3' : 'François Bayrou',
+                    '4' : 'Jacques Chirac',
+                    '5' : 'Jean-Marie Lepen',
+                    '6' : 'Christiane Taubira',
+                    '7' : 'Jean Saint-Josse',
+                    '8' : 'Noel Mamere',
+                    '9' : 'Lionel Jospin',
+                    '10' : 'Christine Boutin',
+                    '11' : 'Robert Hue',
+                    '12' : 'Jean-Pierre Chevenement',
+                    '13' : 'Alain Madelin',
+                    '14' : 'Arlette Laguiller',
+                    '15' : 'Olivier Besancenot'
+}
+"""Dictonnary with order in csv as keys and names of candidates as values for 2007"""
+candidats_2007 = {'' : 'Olivier Besancenot',
+                '1' : 'Marie-George Buffet',
+                '2' : 'Gérard Schivardi',
+                '3' : 'François Bayrou',
+                '4' : 'José Bové',
+                '5' : 'Dominique Voynet',
+                '7' : 'Phillipe de Villiers',
+                '8' : 'Ségolène Royal',
+                '9' : 'Frédéric Nihous',
+                '10' : 'Jean-Marie Lepen',
+                '11' : 'Arlette Laguiller',
+                '12' : 'Nicolas Sarkozy'
+}
+"""Dictonnary with order in csv as keys and names of candidates as values for 2012"""
+candidats_2012 = {'' : 'Eva Joly',
+                '1' : 'Marine Lepen',
+                '2' : 'Nicolas Sarkozy',
+                '3' : 'Jean-Luc Mélanchon',
+                '4' : 'Philippe Poutou',
+                '5' : 'Nathalie Arthaud',
+                '6' : 'Jacques Cheminade',
+                '7' : 'François Bayrou',
+                '8' :'Nicolas Dupont-Aignan',
+                '9' : 'François Hollande'
+}
+"""Dictonnary with order in csv as keys and names of candidates as values for 2017"""
 
-#voix_candidats = {d951['nom']:}
-moyenne_voix = []
-voixJoly = [voix for voix in d951['voix']]
-voixJoly = commaToDot(voixJoly)
-#voixJoly = float(voixJoly)
-print(voixJoly[:15])
-floatJoly=[]
-	
-for i in range (1, len(voixJoly)):
-    floatJoly.append(float(i))
+def candidat_dep(df, dep, candidats):
+    """Calculates the mean of the vote for each candidate, in each department
 
-moyenneJoly = numpy.mean(floatJoly)
-print(moyenneJoly)
+    Parameters:
+    df(object) : the dataframe corresponding to the election we're intrested in
+    dep(int) : the department 
+    candidats(dict) : the dictionnary holding the list of candidates in the chosen data frame. ATTENTION you need 
+                        to manually make sure you're using the correct associations (e.g. d951 -> candidats_1995)
+    
+    Returns:
+    (dict) Dictionnary with names of candidates as Keys and their department means as values
+    """
+    d_dep = departmentQuery(dep,df)
+    moyenne = {}
+    moyenneVote = 0
+    for j, k in candidats.items():
+        votes = [voix for voix in d_dep['voix'+j]]
+        floatVote=[]
+        for i in range (1, len(votes)):
+            floatVote.append(float(votes[i]))
+            moyenneVote = numpy.mean(floatVote)
+        moyenne[k] = moyenneVote
+   
+    return moyenne 
+def mean_dataframe(candidats, selected_year):
+    """Create the dataframe holding all the candidates and their means for a specific year. The columns are : 
+        'year, departement, candidat, moyenne'.
+        TODO add 2017, merge all the years together
 
+    Parameters:
+    candidats(dict)
+    selected_year(string)
+
+    Returns:
+    Dataframe
+
+    """
+    rows = []
+    candidats=candidats_1995
+    for key, value in year_can.items():
+        for dep in range (1,96):
+            ave = candidat_dep(value[0], dep, candidats)
+            for i,j  in ave.items():
+                rows.append(['1995', dep, i, j])    
+    mean = pd.DataFrame(rows, columns=[selected_year, "departement", "candidat", "moyenne"])
+
+    return mean
+c1995 = mean_dataframe(candidats_1995, '1995')
+c2002 = mean_dataframe(candidats_2002, '2002')
+c2007 = mean_dataframe(candidats_2007, '2007')
+c2012 = mean_dataframe(candidats_2012, '2012')
+
+#print(c1995)
 def trouve_chef_lieu(code):
     """Queries dChefLieux to create a sub-frame depending on the selected departement
 
@@ -216,19 +325,12 @@ def draw_map(dYear,type,code='02'):
                     width=800, height=400)
     #map.show()
     print("Map finie")
-draw_map(d171, 'communes')
+#draw_map(d171, 'communes')
 
 
 
 
-"""Dictionnary with years ans keys and an array of the associated dataframes as values"""
-year_name = {
-    1995 : [d951, d952],
-    2002 : [d021, d022],
-    2007 : [d071, d072],
-    2012 : [d121, d122],
-    2017 : [d171, d172]
-}
+
 ############## dash app ############
 app = dash.Dash(__name__, title="Elections Présidentielles")
 app.layout = html.Div([
@@ -258,7 +360,8 @@ app.layout = html.Div([
                                     {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
                                 ],
                                 placeholder="Départements",
-                                value='1'
+                                value='1',
+                                clearable=False
                             ),
                             dcc.Dropdown(
                                 id='round-select',
@@ -266,7 +369,8 @@ app.layout = html.Div([
                                     {'label': 'Premier tour', 'value': 'T1'},
                                     {'label': 'Second tour', 'value': 'T2'}
                                 ],
-                                value="T1"
+                                value="T1",
+                                clearable=False
                             ),
                             html.P(children='''
                                     Echelle
@@ -325,6 +429,7 @@ def update_figure(selected_departement, selected_year, selected_round):
     fig1 = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig1.update_layout(
         margin=dict(l=20, r=20, t=30, b=20),
+        height=200,
         paper_bgcolor="LightSteelBlue",
     )
     return fig1

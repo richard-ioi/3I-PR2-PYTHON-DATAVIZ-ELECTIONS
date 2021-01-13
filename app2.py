@@ -247,7 +247,6 @@ def calcul_taux_participation_departement(dYear):
     dDepartmentList=[]
     for i in department_names.keys():
         dDepartmentList.append(department_names.get(i))
-        vCompteur+=1
         vD=departmentQuery(i,dYear)
         moyenne=0
         for j in (vD['%_vot/ins']):

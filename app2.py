@@ -7,6 +7,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from numpy.lib.function_base import kaiser
 import plotly.express as px
 import pandas as pd
 import requests
@@ -229,12 +230,7 @@ def mean_dataframe(candidats, selected_year):
     mean = pd.DataFrame(rows, columns=[selected_year, "departement", "candidat", "moyenne"])
 
     return mean
-c1995 = mean_dataframe(candidats_1995, '1995')
-c2002 = mean_dataframe(candidats_2002, '2002')
-c2007 = mean_dataframe(candidats_2007, '2007')
-c2012 = mean_dataframe(candidats_2012, '2012')
 
-#print(c1995)
 def trouve_chef_lieu(code):
     """Queries dChefLieux to create a sub-frame depending on the selected departement
 
@@ -249,7 +245,6 @@ def trouve_chef_lieu(code):
 def calcul_taux_participation_departement(dYear):
     dT={}
     dDepartmentList=[]
-    vCompteur=0
     for i in department_names.keys():
         dDepartmentList.append(department_names.get(i))
         vCompteur+=1
@@ -259,7 +254,7 @@ def calcul_taux_participation_departement(dYear):
             vS=j
             vS=vS.replace(',','.')
             moyenne+=float(vS)
-        if (vCompteur<10):
+        if (len(i)==1):
             i='0'+i
 
         dT[i]=[moyenne/vD['%_vot/ins'].size]
@@ -278,7 +273,7 @@ def calcul_taux_participation_commune(dYear,code):
     print("DEPARTEMENT SELECTIONNE "+dep)
     dTaux=departmentQuery(dep,dYear)
     dTaux=dTaux.rename(columns={'code_de_la_commune':'code'})
-    dTaux=dTaux.reset_index()
+    dTaux=dTaux.reset_index()#SI ERREUR PEUT ETRE ICI !!!!!
     zeros=''
     vCompteur=0
     for j in (dTaux['code']):
@@ -295,8 +290,83 @@ def calcul_taux_participation_commune(dYear,code):
     dTaux['%_vot/ins']=dTaux['%_vot/ins'].astype(float)
     return dTaux
 
+def candidat_gagnant_commune(dYear,code):
+    dT={}
+    dMax=[]
+    dep=code
+    if(code[0]=='0'):
+        dep=code[1]
+    zeros=''
+    dCand=departmentQuery(dep,dYear)
+    dCand=dCand.rename(columns={'code_de_la_commune':'code'})
+    dCand['code']=dCand['code'].astype(str)
+    dCand=dCand.reset_index()
+    vCompteurCode=0
+    for i in dCand['code']:
+        if(len(str(i))==1):
+            zeros='00'
+        elif(len(str(i))==2):
+            zeros='0'
+        elif(len(str(i))==3):
+            zeros=''
+        dCand.loc[vCompteurCode,'code']=str(code+zeros+str(i))
+        vCompteurCode=vCompteurCode+1
+    vCompt=0
+    dVille=[]
+    for x in dCand['code']:
+        vC=''
+        vCint=0
+        max=0
+        gagnant=''
+        while('%_voix/exp'+vC in dCand):
+            if(float((str(dCand.loc[vCompt]['%_voix/exp'+str(vC)])).replace(',','.'))>max):
+                max=float((dCand.loc[vCompt]['%_voix/exp'+str(vC)]).replace(',','.'))
+                gagnant=str(dCand.loc[vCompt]['nom'+str(vC)])+' '+str(dCand.loc[vCompt]['prénom'+str(vC)])
+            vCint=vCint+1
+            vC=str(vCint)
+        dT[x]=gagnant
+        dMax.append(max)
+        dVille.append(dCand.loc[vCompt]['libellé_de_la_commune'])
+        vCompt=vCompt+1
+    dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant'])
+    dFinal=dFinal.reset_index()
+    dFinal=dFinal.rename(columns={'index':'code'})
+    dMaxSeries=pd.Series(dMax,name='voix')
+    dVilleSeries=pd.Series(dVille,name='libellé_de_la_commune')
+    dFinal=pd.concat([dFinal,dMaxSeries,dVilleSeries], axis=1)
+    return dFinal
+
+def candidat_gagnant_departement(dYear):
+    dT={}
+    dDepartmentList=[]
+    for i in department_names.keys():
+        dDepartmentList.append(department_names.get(i))
+        vD=candidat_gagnant_commune(dYear,i)
+        dCandidats={}
+        for j in vD['gagnant']:
+            if(j not in dCandidats):
+                dCandidats[j]=1
+            else:
+                dCandidats[j]=dCandidats[j]+1
+        max=0
+        gagnant=''
+        for k in dCandidats.keys():
+            if(int(dCandidats.get(k))>max):
+                max=int(dCandidats.get(k))
+                gagnant=k
+        if (len(i)==1):
+            i='0'+i
+        dT[i]=gagnant
+
+    dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant'])
+    dFinal=dFinal.reset_index()
+    dFinal=dFinal.rename(columns={'index':'code'})
+    dDepartmentSeries=pd.Series(dDepartmentList,name='dep_names')
+    dFinal=pd.concat([dFinal,dDepartmentSeries], axis=1)
+    return dFinal
+
 ############# map drawing ##########
-def draw_map(dYear,type,code='02'):
+def draw_map(dYear,type,code='60',format='participation'):
     print("Load de la map...")
     if(type=='départements'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
@@ -304,9 +374,6 @@ def draw_map(dYear,type,code='02'):
         vLat=47.5
         vLon=2.6
         vZoom=4.4
-        vColor='taux_de_participation'
-        dTauxFinal=calcul_taux_participation_departement(dYear)
-        vHoverLoc='dep_names'
     elif(type=='communes'):
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
             geojson = json.load(response)
@@ -314,9 +381,26 @@ def draw_map(dYear,type,code='02'):
         vLat=float(vCoordinates[:12])
         vLon=float(vCoordinates[14:])
         vZoom=7
-        vColor='%_vot/ins'
-        dTauxFinal=calcul_taux_participation_commune(dYear,code)
-        vHoverLoc='libellé_de_la_commune'
+
+    if(format=='participation'):
+        if(type=='départements'):
+            vColor='taux_de_participation'
+            dTauxFinal=calcul_taux_participation_departement(dYear)
+            vHoverLoc='dep_names'
+        elif(type=='communes'):
+            vColor='%_vot/ins'
+            dTauxFinal=calcul_taux_participation_commune(dYear,code)
+            vHoverLoc='libellé_de_la_commune'
+
+    elif(format=='candidat'):
+        if(type=='départements'):
+            dTauxFinal=candidat_gagnant_departement(dYear)
+            vColor='gagnant'
+            vHoverLoc='dep_names'
+        elif(type=='communes'):
+            dTauxFinal=candidat_gagnant_commune(dYear,code)
+            vColor='gagnant'
+            vHoverLoc='libellé_de_la_commune'
     
     print("Traçage de la map...")
     global map
@@ -331,7 +415,12 @@ def draw_map(dYear,type,code='02'):
                     width=800, height=400)
     #map.show()
     print("Map finie")
-#draw_map(d171, 'départements')
+#draw_map(d171,'départements','60',format='candidat')
+
+c1995 = mean_dataframe(candidats_1995, '1995')
+c2002 = mean_dataframe(candidats_2002, '2002')
+c2007 = mean_dataframe(candidats_2007, '2007')
+c2012 = mean_dataframe(candidats_2012, '2012')
 
 ############## dash app ############
 app = dash.Dash(__name__, title="Elections Présidentielles")
@@ -384,12 +473,21 @@ app.layout = html.Div([
                                     {'label': 'Départementale', 'value': 'dep'}
                                 ],
                                 value='fr'
-                            ),  
+                            ),
+                            dcc.RadioItems(
+                                id="map-format",
+                                options=[
+                                    {'label': 'Taux de participation', 'value': 'participation'},
+                                    {'label': 'Candidats', 'value': 'candidat'}
+                                ],
+                                value='participation'
+                            )  ,
                             html.P("Selectionner l'année"),
                             dcc.RangeSlider(
                                 id='year-slider',
                                 min=1995,
                                 max=2017,
+
                                 step=None,
                                 marks={
                                     1995: '1995',
@@ -490,15 +588,17 @@ def update_historgram(selected_departement, selected_round):
     Input('year-slider', 'value'),
     Input('round-select', 'value'),
     Input('map-scale', 'value'),
+    Input('map-format', 'value'),
     Input('departements', 'value')
 )
-def update_map(selected_year, selected_round, selected_scale, selected_departement):
+def update_map(selected_year, selected_round, selected_scale, selected_format, selected_departement):
     """ Renders the map of France showing the participation rate of each department or town depending on the chosen scale
 
     Parameters:
     selected_year(): 
     selected_round()
     selected_scale()
+    selected_format()
     selected_departement()
 
     Returns 
@@ -513,14 +613,6 @@ def update_map(selected_year, selected_round, selected_scale, selected_departeme
             vLat=47.5
             vLon=2.6
             vZoom=4.4
-            vColor='taux_de_participation'
-            vHoverLoc='dep_names'
-        for i,j  in year_name.items():
-            if(i == selected_year[0]):
-                if(selected_round == 'T1'):
-                    dTauxFinal=calcul_taux_participation_departement(j[0])
-                elif(selected_round == 'T2'):
-                    dTauxFinal=calcul_taux_participation_departement(j[1])
     ############# REPRESNETATION DEPARTEMENTALE ############################    
     elif(selected_scale =='dep'):
         depart = selected_departement
@@ -535,15 +627,45 @@ def update_map(selected_year, selected_round, selected_scale, selected_departeme
             vLat=float(vCoordinates[:12])
             vLon=float(vCoordinates[14:])
             vZoom=7
+    if(selected_format=='participation'):
+        if(selected_scale=='fr'):
+            vColor='taux_de_participation'
+            vHoverLoc='dep_names'
+            for i,j  in year_name.items():
+                if(i == selected_year[0]):
+                    if(selected_round == 'T1'):
+                        dTauxFinal=calcul_taux_participation_departement(j[0])
+                    elif(selected_round == 'T2'):
+                        dTauxFinal=calcul_taux_participation_departement(j[1])
+        elif(selected_scale=='dep'):
             vColor='%_vot/ins'
             vHoverLoc='libellé_de_la_commune'
+            for i,j  in year_name.items():
+                if(i == selected_year[0]):
+                    if(selected_round == 'T1'):
+                        dTauxFinal=calcul_taux_participation_commune(j[0],selected_departement)
+                    elif(selected_round == 'T2'):
+                        dTauxFinal=calcul_taux_participation_commune(j[1], selected_departement)
 
-        for i,j  in year_name.items():
-            if(i == selected_year[0]):
-                if(selected_round == 'T1'):
-                    dTauxFinal=calcul_taux_participation_commune(j[0],depart)
-                elif(selected_round == 'T2'):
-                    dTauxFinal=calcul_taux_participation_commune(j[1], depart)
+    elif(selected_format=='candidat'):
+        if(selected_scale=='fr'):
+            for i,j  in year_name.items():
+                if(i == selected_year[0]):
+                    if(selected_round == 'T1'):
+                        dTauxFinal=candidat_gagnant_departement(j[0])
+                    elif(selected_round == 'T2'):
+                        dTauxFinal=candidat_gagnant_departement(j[1])
+            vColor='gagnant'
+            vHoverLoc='dep_names'
+        elif(selected_scale=='dep'):
+            for i,j  in year_name.items():
+                if(i == selected_year[0]):
+                    if(selected_round == 'T1'):
+                        dTauxFinal=candidat_gagnant_commune(j[0],selected_departement)
+                    elif(selected_round == 'T2'):
+                        dTauxFinal=candidat_gagnant_departement(j[1],selected_departement)
+            vColor='gagnant'
+            vHoverLoc='libellé_de_la_commune'
 
     ################ TRACAGE DE LA MAP ###########################
     map = px.choropleth_mapbox(dTauxFinal, geojson=geo, color=vColor,

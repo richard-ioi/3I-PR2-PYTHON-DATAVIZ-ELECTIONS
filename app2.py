@@ -248,8 +248,10 @@ def trouve_chef_lieu(code):
 
 def calcul_taux_participation_departement(dYear):
     dT={}
+    dDepartmentList=[]
     vCompteur=0
     for i in department_names.keys():
+        dDepartmentList.append(department_names.get(i))
         vCompteur+=1
         vD=departmentQuery(i,dYear)
         moyenne=0
@@ -265,6 +267,8 @@ def calcul_taux_participation_departement(dYear):
     dTaux=pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation'])
     dTaux=dTaux.reset_index()
     dTaux=dTaux.rename(columns={'index':'code'})
+    dDepartmentSeries=pd.Series(dDepartmentList,name='dep_names')
+    dTaux=pd.concat([dTaux,dDepartmentSeries], axis=1)
     return dTaux
 
 def calcul_taux_participation_commune(dYear,code):
@@ -302,6 +306,7 @@ def draw_map(dYear,type,code='02'):
         vZoom=4.4
         vColor='taux_de_participation'
         dTauxFinal=calcul_taux_participation_departement(dYear)
+        vHoverLoc='dep_names'
     elif(type=='communes'):
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
             geojson = json.load(response)
@@ -311,25 +316,22 @@ def draw_map(dYear,type,code='02'):
         vZoom=7
         vColor='%_vot/ins'
         dTauxFinal=calcul_taux_participation_commune(dYear,code)
+        vHoverLoc='libellé_de_la_commune'
     
- 
     print("Traçage de la map...")
     global map
     map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom
+                        mapbox_style="carto-positron", zoom=vZoom,
+                        hover_data={vHoverLoc}
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=800, height=400)
     #map.show()
     print("Map finie")
-#draw_map(d171, 'communes')
-
-
-
-
+#draw_map(d171, 'départements')
 
 ############## dash app ############
 app = dash.Dash(__name__, title="Elections Présidentielles")
@@ -512,6 +514,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_departeme
             vLon=2.6
             vZoom=4.4
             vColor='taux_de_participation'
+            vHoverLoc='dep_names'
         for i,j  in year_name.items():
             if(i == selected_year[0]):
                 if(selected_round == 'T1'):
@@ -533,6 +536,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_departeme
             vLon=float(vCoordinates[14:])
             vZoom=7
             vColor='%_vot/ins'
+            vHoverLoc='libellé_de_la_commune'
 
         for i,j  in year_name.items():
             if(i == selected_year[0]):
@@ -546,7 +550,8 @@ def update_map(selected_year, selected_round, selected_scale, selected_departeme
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
                         mapbox_style="carto-positron", zoom=vZoom, 
-                        color_discrete_sequence=px.colors.diverging.Earth
+                        color_discrete_sequence=px.colors.diverging.Earth,
+                        hover_data={vHoverLoc}
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},

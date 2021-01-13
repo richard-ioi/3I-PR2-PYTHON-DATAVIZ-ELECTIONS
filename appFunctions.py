@@ -8,7 +8,7 @@ def normaliseNames(name):
     object:Modified dataframe 
 
    """
-    return name.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_').str.replace('.', '_')
+    return name.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_').str.replace('.', '')
 
 def commaToDot(data):
     """ Replaces commas by dots to enable string to float conversions. Use only on columns holding numbers and not letters

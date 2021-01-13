@@ -605,6 +605,10 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
     """
     global map
     global geo
+    depart = selected_departement
+    for i in range(1, 10):
+        if(depart == str(i)):
+            depart = '0'+str(i)
     ########### REPRESENTATION ECHELLE NATIONALE ######################
     if(selected_scale =='fr'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
@@ -614,10 +618,6 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             vZoom=4.4
     ############# REPRESNETATION DEPARTEMENTALE ############################    
     elif(selected_scale =='dep'):
-        depart = selected_departement
-        for i in range(1, 10):
-            if(depart == str(i)):
-                depart = '0'+str(i)
                 print("le dep selec est mtn :" + str(depart))
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+depart+'.geojson') as response:
             geo = json.load(response)
@@ -642,9 +642,9 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=calcul_taux_participation_commune(j[0],selected_departement)
+                        dTauxFinal=calcul_taux_participation_commune(j[0],depart)
                     elif(selected_round == 'T2'):
-                        dTauxFinal=calcul_taux_participation_commune(j[1], selected_departement)
+                        dTauxFinal=calcul_taux_participation_commune(j[1], depart)
 
     elif(selected_format=='candidat'):
         if(selected_scale=='fr'):
@@ -660,9 +660,9 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=candidat_gagnant_commune(j[0],selected_departement)
+                        dTauxFinal=candidat_gagnant_commune(j[0],depart)
                     elif(selected_round == 'T2'):
-                        dTauxFinal=candidat_gagnant_departement(j[1],selected_departement)
+                        dTauxFinal=candidat_gagnant_departement(j[1],depart)
             vColor='gagnant'
             vHoverLoc='libellé_de_la_commune'
 

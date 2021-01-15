@@ -39,27 +39,6 @@ department_names = {
     '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne', '95': 'Val-d\'Oise',
 }
 
-""" Dictionnary with department names as keys and department code arrays as values"""
-region_names = {
-    'Auvergne-Rhône-Alpes': ['01', '03', '07', '15', '26', '38', '42', '43', '63', '69', '73', '74'],
-    'Bourgogne-Franche-Comté': ['21', '25', '39', '58', '70', '71', '89', '90'],
-    'Bretagne': ['35', '22', '56', '29'],
-    'Centre-Val de Loire': ['18', '28', '36', '37', '41', '45'],
-    'Corse': ['2A', '2B'],
-    'Grand Est': ['08', '10', '51', '52', '54', '55', '57', '67', '68', '88'],
-    'Guadeloupe': ['971'],
-    'Guyane': ['973'],
-    'Hauts-de-France': ['02', '59', '60', '62', '80'],
-    'Île-de-France': ['75', '77', '78', '91', '92', '93', '94', '95'],
-    'La Réunion': ['974'],
-    'Martinique': ['972'],
-    'Normandie': ['14', '27', '50', '61', '76'],
-    'Nouvelle-Aquitaine': ['16', '17', '19', '23', '24', '33', '40', '47', '64', '79', '86', '87'],
-    'Occitanie': ['09', '11', '12', '30', '31', '32', '34', '46', '48', '65', '66', '81', '82'],
-    'Pays de la Loire': ['44', '49', '53', '72', '85'],
-    'Provence-Alpes-Côte d\'Azur': ['04', '05', '06', '13', '83', '84'],
-}
-
 """importing csv data files """
 url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
 
@@ -120,116 +99,6 @@ year_name = {
     2012 : [d121, d122],
     2017 : [d171, d172]
 }
-year_can = {
-    1995 : [d951, d952],
-    2002 : [d021, d022],
-    2007 : [d071, d072],
-    2012 : [d121, d122]
-}
-"""Dictonnary with order in csv as keys and names of candidates as values for 1995"""
-candidats_1995 = {'':'Philippe de Villier',
-            '1' : 'Jean-Marie Lepen',
-            '2' : 'Jacques Chirac',
-            '3' : 'Arlette Laguiller',
-            '4' : 'Jacques Cheminade',
-            '5' : 'Lionel Jospin',
-            '6' : 'Dominique Voynet',
-            '7' : 'Edourd Balladur',
-            '8' : 'Robert Hue'
-}
-"""Dictonnary with order in csv as keys and names of candidates as values for 2002"""
-candidats_2002 = { '' : 'Bruno Megret',
-                    '1' : 'Corrine Lepage',
-                    '2' : 'Daniel Gluckstein',
-                    '3' : 'François Bayrou',
-                    '4' : 'Jacques Chirac',
-                    '5' : 'Jean-Marie Lepen',
-                    '6' : 'Christiane Taubira',
-                    '7' : 'Jean Saint-Josse',
-                    '8' : 'Noel Mamere',
-                    '9' : 'Lionel Jospin',
-                    '10' : 'Christine Boutin',
-                    '11' : 'Robert Hue',
-                    '12' : 'Jean-Pierre Chevenement',
-                    '13' : 'Alain Madelin',
-                    '14' : 'Arlette Laguiller',
-                    '15' : 'Olivier Besancenot'
-}
-"""Dictonnary with order in csv as keys and names of candidates as values for 2007"""
-candidats_2007 = {'' : 'Olivier Besancenot',
-                '1' : 'Marie-George Buffet',
-                '2' : 'Gérard Schivardi',
-                '3' : 'François Bayrou',
-                '4' : 'José Bové',
-                '5' : 'Dominique Voynet',
-                '7' : 'Phillipe de Villiers',
-                '8' : 'Ségolène Royal',
-                '9' : 'Frédéric Nihous',
-                '10' : 'Jean-Marie Lepen',
-                '11' : 'Arlette Laguiller',
-                '12' : 'Nicolas Sarkozy'
-}
-"""Dictonnary with order in csv as keys and names of candidates as values for 2012"""
-candidats_2012 = {'' : 'Eva Joly',
-                '1' : 'Marine Lepen',
-                '2' : 'Nicolas Sarkozy',
-                '3' : 'Jean-Luc Mélanchon',
-                '4' : 'Philippe Poutou',
-                '5' : 'Nathalie Arthaud',
-                '6' : 'Jacques Cheminade',
-                '7' : 'François Bayrou',
-                '8' :'Nicolas Dupont-Aignan',
-                '9' : 'François Hollande'
-}
-"""Dictonnary with order in csv as keys and names of candidates as values for 2017"""
-
-def candidat_dep(df, dep, candidats):
-    """Calculates the mean of the vote for each candidate, in each department
-
-    Parameters:
-    df(object) : the dataframe corresponding to the election we're intrested in
-    dep(int) : the department 
-    candidats(dict) : the dictionnary holding the list of candidates in the chosen data frame. ATTENTION you need 
-                        to manually make sure you're using the correct associations (e.g. d951 -> candidats_1995)
-    
-    Returns:
-    (dict) Dictionnary with names of candidates as Keys and their department means as values
-    """
-    d_dep = departmentQuery(dep,df)
-    moyenne = {}
-    moyenneVote = 0
-    for j, k in candidats.items():
-        votes = [voix for voix in d_dep['voix'+j]]
-        floatVote=[]
-        for i in range (1, len(votes)):
-            floatVote.append(float(votes[i]))
-            moyenneVote = numpy.mean(floatVote)
-        moyenne[k] = moyenneVote
-   
-    return moyenne 
-def mean_dataframe(candidats, selected_year):
-    """Create the dataframe holding all the candidates and their means for a specific year. The columns are : 
-        'year, departement, candidat, moyenne'.
-        TODO add 2017, merge all the years together
-
-    Parameters:
-    candidats(dict)
-    selected_year(string)
-
-    Returns:
-    Dataframe
-
-    """
-    rows = []
-    candidats=candidats_1995
-    for key, value in year_can.items():
-        for dep in range (1,96):
-            ave = candidat_dep(value[0], dep, candidats)
-            for i,j  in ave.items():
-                rows.append(['1995', dep, i, j])    
-    mean = pd.DataFrame(rows, columns=[selected_year, "departement", "candidat", "moyenne"])
-
-    return mean
 
 def trouve_chef_lieu(code):
     """Queries dChefLieux to create a sub-frame depending on the selected departement
@@ -362,64 +231,61 @@ def candidat_gagnant_departement(dYear):
     dFinal=dFinal.rename(columns={'index':'code'})
     dDepartmentSeries=pd.Series(dDepartmentList,name='dep_names')
     dFinal=pd.concat([dFinal,dDepartmentSeries], axis=1)
+    #print(dFinal)
     return dFinal
 
 ############# map drawing ##########
-def draw_map(dYear,type,code='60',format='participation'):
-    print("Load de la map...")
-    if(type=='départements'):
-        with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
-            geojson = json.load(response)
-        vLat=47.5
-        vLon=2.6
-        vZoom=4.4
-    elif(type=='communes'):
-        with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
-            geojson = json.load(response)
-        vCoordinates=trouve_chef_lieu(code)
-        vLat=float(vCoordinates[:12])
-        vLon=float(vCoordinates[14:])
-        vZoom=7
+# def draw_map(dYear,type,code='60',format='participation'):
+#     print("Load de la map...")
+#     if(type=='départements'):
+#         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
+#             geojson = json.load(response)
+#         vLat=47.5
+#         vLon=2.6
+#         vZoom=4.4
+#     elif(type=='communes'):
+#         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+code+'.geojson') as response:
+#             geojson = json.load(response)
+#         vCoordinates=trouve_chef_lieu(code)
+#         vLat=float(vCoordinates[:12])
+#         vLon=float(vCoordinates[14:])
+#         vZoom=7
 
-    if(format=='participation'):
-        if(type=='départements'):
-            vColor='taux_de_participation'
-            dTauxFinal=calcul_taux_participation_departement(dYear)
-            vHoverLoc='dep_names'
-        elif(type=='communes'):
-            vColor='%_vot/ins'
-            dTauxFinal=calcul_taux_participation_commune(dYear,code)
-            vHoverLoc='libellé_de_la_commune'
+#     if(format=='participation'):
+#         if(type=='départements'):
+#             vColor='taux_de_participation'
+#             dTauxFinal=calcul_taux_participation_departement(dYear)
+#             vHoverLoc='dep_names'
+#         elif(type=='communes'):
+#             vColor='%_vot/ins'
+#             dTauxFinal=calcul_taux_participation_commune(dYear,code)
+#             vHoverLoc='libellé_de_la_commune'
 
-    elif(format=='candidat'):
-        if(type=='départements'):
-            dTauxFinal=candidat_gagnant_departement(dYear)
-            vColor='gagnant'
-            vHoverLoc='dep_names'
-        elif(type=='communes'):
-            dTauxFinal=candidat_gagnant_commune(dYear,code)
-            vColor='gagnant'
-            vHoverLoc='libellé_de_la_commune'
+#     elif(format=='candidat'):
+#         if(type=='départements'):
+#             dTauxFinal=candidat_gagnant_departement(dYear)
+#             vColor='gagnant'
+#             vHoverLoc='dep_names'
+#         elif(type=='communes'):
+#             dTauxFinal=candidat_gagnant_commune(dYear,code)
+#             vColor='gagnant'
+#             vHoverLoc='libellé_de_la_commune'
     
-    print("Traçage de la map...")
-    global map
-    map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
-                        locations="code", featureidkey="properties.code",
-                        center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom,
-                        hover_data={vHoverLoc}
-                    )
-    map.update_geos(fitbounds="locations", visible=False)
-    map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=800, height=400)
-    #map.show()
-    print("Map finie")
+#     print("Traçage de la map...")
+#     global map
+#     map = px.choropleth_mapbox(dTauxFinal, geojson=geojson, color=vColor,
+#                         locations="code", featureidkey="properties.code",
+#                         center={"lat": vLat, "lon": vLon},
+#                         mapbox_style="carto-positron", zoom=vZoom,
+#                         hover_data={vHoverLoc}
+#                     )
+#     map.update_geos(fitbounds="locations", visible=False)
+#     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
+#                     width=800, height=400)
+#     #map.show()
+#     print("Map finie")
 #draw_map(d171,'départements','60',format='candidat')
 
-c1995 = mean_dataframe(candidats_1995, '1995')
-c2002 = mean_dataframe(candidats_2002, '2002')
-c2007 = mean_dataframe(candidats_2007, '2007')
-c2012 = mean_dataframe(candidats_2012, '2012')
 
 ############## dash app ############
 app = dash.Dash(__name__, title="Elections Présidentielles")
@@ -503,10 +369,50 @@ app.layout = html.Div([
             html.Div([
                 dcc.Graph(id='map-box')
             ]),
-            html.Div([
-                dcc.Graph(id='test-graph'),
-                dcc.Graph(id='histogram')
-            ])  
+            html.Div(className='chart-alignment', children=[
+                html.Div(className="align-elements", children=[
+                    html.Div([
+                        dcc.Dropdown(
+                            id='axis-categories1',
+                            options=[
+                                {'label': 'Inscrits', 'value': 'inscrits'},
+                                {'label': 'Abstentions', 'value': 'abstentions'},
+                                {'label': 'Votants', 'value': 'votants'},
+                                {'label': '% Votes par inscrits', 'value':'%_vot/ins'},
+                                {'label' : '% Votes Blancs et Nuls par votes', 'value': '%_blnuls/ins'}
+                            ],
+                            value="inscrits",
+                                        clearable=False
+                                    )
+                                ]),
+                    html.Div([
+                        dcc.Dropdown(
+                            id='axis-categories2',
+                            options=[
+                                {'label': 'Inscrits', 'value': 'inscrits'},
+                                {'label': 'Abstentions', 'value': 'abstentions'},
+                                {'label': 'Votants', 'value': 'votants'},
+                                {'label': '% Votes par inscrits', 'value':'%_vot/ins'},
+                                {'label' : '% Votes Blancs et Nuls par votes', 'value': '%_blnuls/ins'}
+                            ],
+                            value="votants",
+                            clearable=False
+                        )
+                    ])
+                ]),
+                html.Div([
+                    dcc.Graph(id='test-graph')
+                ]), 
+                html.Div(className='align-elements', children=[
+                    html.Div([
+                        dcc.Graph(id='histogram'),
+                    ]),        
+                    html.Div([
+                        dcc.Graph(id='candidats-piechart')
+                    ])    
+                 ])
+            ])
+                
         ]
     )
 ])
@@ -515,8 +421,12 @@ app.layout = html.Div([
    Input('departements', 'value'),
    Input('year-slider', 'value'),
    Input('round-select', 'value'),
+   Input('map-format', 'value'),
+   Input('axis-categories1', 'value'),
+   Input('axis-categories2', 'value')
 )
-def update_figure(selected_departement, selected_year, selected_round): 
+def update_figure(selected_departement, selected_year, selected_round, selected_format, selected_c1, selected_c2):
+    #if(selected_format == candidat) 
     global filtered_df
     for i,j  in year_name.items():
         if(i == selected_year[0]):
@@ -525,11 +435,10 @@ def update_figure(selected_departement, selected_year, selected_round):
             elif(selected_round == 'T2'):
                 filtered_df = departmentQuery(selected_departement, j[1])
 
-    fig1 = px.scatter(filtered_df, x='inscrits', y='votants', hover_name="libellé_de_la_commune", height=300, title="Votants en fonction des inscrits dans le "+str(selected_departement)+" en "+str(selected_year[0]))
+    fig1 = px.scatter(filtered_df, x=selected_c1, y=selected_c2, hover_name="libellé_de_la_commune", title=""+str(selected_c2)+" en fonction des "+ str(selected_c1) +" dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig1.update_layout(
-        margin=dict(l=20, r=20, t=30, b=20),
-        height=200,
-        paper_bgcolor="LightSteelBlue",
+        margin=dict(l=2, r=2, t=30, b=2),
+        height=200, width=600
     )
     return fig1
 @app.callback(
@@ -547,7 +456,6 @@ def update_historgram(selected_departement, selected_round):
     Figure containing 5 overlaid histograms, 4 of which are masked upon launching the app
     """
     global x0, x1, x2, x3, x4
-    #for i,j  in year_name.items():
     if(selected_round == 'T1'):
             x0 = departmentQuery(selected_departement, d951)
             x1 = departmentQuery(selected_departement, d021)
@@ -568,17 +476,22 @@ def update_historgram(selected_departement, selected_round):
     fig.add_trace(go.Histogram(name='2012', visible='legendonly', x = commaToDot(x3['%_vot/ins'])))
     fig.add_trace(go.Histogram(name='2017', visible='legendonly', x = commaToDot(x4['%_vot/ins'])))
     fig.update_layout(barmode='overlay',
+                        margin=dict(l=0, r=0, t=40, b=0),
+                        font=dict(
+                            size=10),
                         title={
-                            'text': "Taux de participation dans le "+str(selected_departement)+" entre 1995 et 2017",
-                            'y':0.85,
+                            'text': "Taux de participation dans le <br>"+str(selected_departement)+" entre 1995 et 2017",
+                            'y':0.95,
                             'x':0.5,
                             'xanchor': 'center',
-                            'yanchor': 'top'},
+                            'yanchor': 'bottom'
+                        },
                         legend=dict(
                             yanchor="top",
                             y=0.99,
                             xanchor="left",
-                            x=0.01))
+                            x=0.01),
+                        width=300, height=300)
     fig.update_traces(opacity=0.50)
     return fig
 
@@ -618,7 +531,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             vZoom=4.4
     ############# REPRESNETATION DEPARTEMENTALE ############################    
     elif(selected_scale =='dep'):
-                print("le dep selec est mtn :" + str(depart))
+        print("le dep selec est mtn :" + str(depart))
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+depart+'.geojson') as response:
             geo = json.load(response)
             vCoordinates=trouve_chef_lieu(depart)
@@ -662,7 +575,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                     if(selected_round == 'T1'):
                         dTauxFinal=candidat_gagnant_commune(j[0],depart)
                     elif(selected_round == 'T2'):
-                        dTauxFinal=candidat_gagnant_departement(j[1],depart)
+                        dTauxFinal=candidat_gagnant_commune(j[1],depart)
             vColor='gagnant'
             vHoverLoc='libellé_de_la_commune'
 
@@ -671,14 +584,51 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
                         mapbox_style="carto-positron", zoom=vZoom, 
-                        color_discrete_sequence=px.colors.diverging.Earth,
+                        color_discrete_sequence=px.colors.diverging.Fall,
                         hover_data={vHoverLoc}
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
-                    width=600, height=700)
-    #map.show()
+                    width=550, height=650,
+                    font=dict(
+                            size=10,
+                            color="RebeccaPurple")
+    )
     return map
+
+@app.callback(
+    Output('candidats-piechart', 'figure'),
+    Input('year-slider', 'value'),
+    Input('round-select', 'value'),
+    Input('map-scale', 'value'),
+    Input('map-format', 'value'),
+    Input('departements', 'value')
+)
+def update_piechart(selected_year, selected_round, selected_scale, selected_format, selected_departement):
+    global filtered_df
+    depart = selected_departement
+    for i in range(1, 10):
+        if(depart == str(i)):
+            depart = '0'+str(i)
+
+    for i,j  in year_name.items():
+        if(i == selected_year[0]):
+            if(selected_round == 'T1'):
+                filtered_df=candidat_gagnant_commune(j[0],depart)
+            elif(selected_round == 'T2'):
+                filtered_df=candidat_gagnant_commune(j[1],depart)
+
+    fig1 = px.pie(filtered_df, values='voix', names='gagnant', title='Répartition des voix',color_discrete_sequence=px.colors.sequential.ice)
+    fig1.update_layout(
+        margin=dict(l=50, r=0, t=50, b=0),
+        height=300, width=400,
+        legend=dict( yanchor="top",
+                            y=0.99,
+                            xanchor="left",
+                            x=0.01),
+        font=dict(size=10)
+    )
+    return fig1
 
 if __name__ == '__main__':
     print("Chargement des données...")

@@ -310,59 +310,63 @@ app.layout = html.Div([
                 children=[
                     html.Div(
                         children=[
-                            dcc.Dropdown(
-                                id='departements',
-                                options=[
-                                    {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
-                                ],
-                                placeholder="Départements",
-                                value='1',
-                                clearable=False
-                            ),
-                            dcc.Dropdown(
-                                id='round-select',
-                                options=[
-                                    {'label': 'Premier tour', 'value': 'T1'},
-                                    {'label': 'Second tour', 'value': 'T2'}
-                                ],
-                                value="T1",
-                                clearable=False
-                            ),
-                            html.P(children='''
-                                    Echelle
-                            '''),
-                            dcc.RadioItems(
-                                id="map-scale",
-                                options=[
-                                    {'label': 'Nationale', 'value': 'fr'},
-                                    {'label': 'Départementale', 'value': 'dep'}
-                                ],
-                                value='fr'
-                            ),
-                            dcc.RadioItems(
-                                id="map-format",
-                                options=[
-                                    {'label': 'Taux de participation', 'value': 'participation'},
-                                    {'label': 'Candidats', 'value': 'candidat'}
-                                ],
-                                value='participation'
-                            )  ,
-                            html.P("Selectionner l'année"),
-                            dcc.RangeSlider(
-                                id='year-slider',
-                                min=1995,
-                                max=2017,
-
-                                step=None,
-                                marks={
-                                    1995: '1995',
-                                    2002: '2002',
-                                    2007: '2007',
-                                    2012: '2012',
-                                    2017: '2017'
-                                },
-                                value=[1995]
-                            )
+                            html.Div(children=[
+                                html.H4(children="Département"),
+                                dcc.Dropdown(
+                                    id='departements',
+                                    options=[
+                                        {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
+                                    ],
+                                    value='1',
+                                    clearable=False
+                                ),
+                                html.H4(children="Tour"),
+                                dcc.Dropdown(
+                                    id='round-select',
+                                    options=[
+                                        {'label': 'Premier tour', 'value': 'T1'},
+                                        {'label': 'Second tour', 'value': 'T2'}
+                                    ],
+                                    value="T1",
+                                    clearable=False
+                                ),
+                                html.H4(children="Election"),
+                                dcc.RangeSlider(
+                                    id='year-slider',
+                                    min=1995,
+                                    max=2017,
+                                    step=None,
+                                    marks={
+                                        1995: '1995',
+                                        2002: '2002',
+                                        2007: '2007',
+                                        2012: '2012',
+                                        2017: '2017'
+                                    },
+                                    value=[1995]
+                                )
+                            ]),
+                            html.Div(className='map-options', children=[
+                                html.H3(children='Options de carte'), 
+                                html.H4(children='Echelle'),
+                                dcc.RadioItems(
+                                    id="map-scale",
+                                    options=[
+                                        {'label': 'Nationale', 'value': 'fr'},
+                                        {'label': 'Départementale', 'value': 'dep'}
+                                    ],
+                                    value='fr'
+                                ),
+                                html.H4(children='Données'),
+                                dcc.RadioItems(
+                                    id="map-format",
+                                    options=[
+                                        {'label': 'Taux de participation', 'value': 'participation'},
+                                        {'label': 'Candidats', 'value': 'candidat'}
+                                    ],
+                                    value='participation'
+                                )
+                            ])   
                         ]
                     ),
             
@@ -438,7 +442,13 @@ def update_figure(selected_departement, selected_year, selected_round, selected_
     fig1 = px.scatter(filtered_df, x=selected_c1, y=selected_c2, hover_name="libellé_de_la_commune", title=""+str(selected_c2)+" en fonction des "+ str(selected_c1) +" dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig1.update_layout(
         margin=dict(l=2, r=2, t=30, b=2),
-        height=200, width=600
+        height=200, width=600,
+        font=dict(size=10),
+         title={
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'}
     )
     return fig1
 @app.callback(
@@ -584,15 +594,15 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
                         mapbox_style="carto-positron", zoom=vZoom, 
-                        color_discrete_sequence=px.colors.diverging.Fall,
+                        color_discrete_sequence=px.colors.diverging.Picnic,
+                        
                         hover_data={vHoverLoc}
                     )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=550, height=650,
-                    font=dict(
-                            size=10,
-                            color="RebeccaPurple")
+                    font=dict(size=10),
+                    coloraxis_colorscale='RdBu'
     )
     return map
 
@@ -621,12 +631,17 @@ def update_piechart(selected_year, selected_round, selected_scale, selected_form
     fig1 = px.pie(filtered_df, values='voix', names='gagnant', title='Répartition des voix',color_discrete_sequence=px.colors.sequential.ice)
     fig1.update_layout(
         margin=dict(l=50, r=0, t=50, b=0),
-        height=300, width=400,
-        legend=dict( yanchor="top",
-                            y=0.99,
-                            xanchor="left",
-                            x=0.01),
-        font=dict(size=10)
+        height=350, width=400,
+        legend=dict( yanchor="bottom",
+                    y=-0.54,
+                    xanchor="left",
+                    x=0.01),
+        font=dict(size=10),
+        title={
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'}
     )
     return fig1
 

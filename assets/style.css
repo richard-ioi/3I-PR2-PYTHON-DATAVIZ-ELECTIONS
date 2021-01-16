@@ -64,6 +64,7 @@
     padding-bottom: 20px;
     border-radius: 0px 0px 25px 25px;
     margin-bottom: 20px;
+    width: 102%;
 }
 .app-header h1{
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
@@ -82,8 +83,21 @@
     padding-left: 55px ;
     font-size: 12px;
 }
-
-
+h3{
+    margin: 10px;
+}
+h4{
+    margin: 5px;
+}
+.map-options{
+    border: #010442;
+    border-radius: 25px 25px 25px 25px;
+    border-width: 2px;
+    border-style: solid;
+    margin-top: 100px;
+    padding: 10px;
+    align-self: baseline;
+}
 
 /* Extracts of CSS FROM https://codepen.io/chriddyp/pen/bWLwgP.css */
 

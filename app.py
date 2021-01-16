@@ -573,5 +573,5 @@ def update_piechart(selected_year, selected_round, selected_scale, selected_form
 if __name__ == '__main__':
     print("Chargement des données...")
     print("Rendez-vous sur localhost:8051 pour finir le chargement des données (recharger la page si erreur)")
-    print("..**.")
-    app.run_server(debug=True, port=8051)
+    print("....................................")
+    app.run_server(debug=False, port=8051)

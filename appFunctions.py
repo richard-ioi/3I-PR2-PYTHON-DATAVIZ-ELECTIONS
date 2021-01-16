@@ -25,7 +25,6 @@ def commaToDot(data):
         convert.append(temp)   
     return convert
 
-#selects a specific department 
 def departmentQuery(code, name):
     """Queries dataframe to create a sub-frame depending on the selected departement
 

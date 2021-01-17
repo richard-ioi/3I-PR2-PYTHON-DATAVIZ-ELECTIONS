@@ -478,8 +478,10 @@ def update_historgram(selected_departement, selected_round):
                             yanchor="top",
                             y=0.99,
                             xanchor="left",
-                            x=0.01),
+                            x=0.01),                        
                         width=300, height=300)
+    fig.update_xaxes(title_text='% Votants/Inscrits')
+    fig.update_yaxes(title_text='Nombre de villes')
     fig.update_traces(opacity=0.50)
     return fig
 

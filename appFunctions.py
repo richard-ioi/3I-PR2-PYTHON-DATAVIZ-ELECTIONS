@@ -50,3 +50,8 @@ def add_zeros_ewt(df, code):
             zeros=''
         df.loc[vCompteurCode,'code']=str(code+zeros+str(i))
         vCompteurCode=vCompteurCode+1
+
+def reformat_department(department_code):
+    if(len(department_code)<2):
+        department_code = '0'+str(department_code)
+    return department_code

@@ -8,10 +8,9 @@ Ce projet a pour but d'analyser les résultats des élections présidentielles e
 Les résulats obtenus sont présentés ci-dessous, en deux temps d'abord les resultats pour le taux de participation, puis pour les candidats élus.
 
 ### Le taux de participation
-
+Le taux de participation est illustré par une carte choroplèthe et un histogramme, accompagné d'un diagramme de points qui ensembles permettent de se donner une idée dans la participation des français. Ces valeurs montrent l'implication des français dans la vie politique et les résultats que nous avons obtenus sont révélateurs en ce qui concerne le désintérêt de certaines régions face à une élection si importante. Si on reprend l'exemple de la Corse, en regardant le nombre d'abstentions en fonction du nombre de votants, on voit qu'en moyenne pour 10 votants on a 5 abstentions. 
 ### Les candidats 
 
-mettre en avant les écarts de participation entre les différentes régions de France métropolitaine, ainsi que d'autres informations telles que leurs orientations politiques ou bien les écarts entre les votes d'années en années.
 ### Conclusion
 
 ## User guide

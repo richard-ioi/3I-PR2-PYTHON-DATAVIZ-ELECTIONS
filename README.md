@@ -56,7 +56,6 @@ projet-python/
 ````
 ### Fonctions des fichiers
 Le repertoire assets contient un fichier css qui permet de définir le style de l'appliation. Celui-ci contient des éléments personalisés et des extraits de https://codepen.io/chriddyp/pen/bWLwgP.css . \
-Le repertoire example_images contient des 
 Le module appFuntions.py contient des fonctions usuelles pour l'application, pour desencombrer le fichier principal.
 Le fichier main.py contient le code de l'application. 
 #### main.py

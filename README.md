@@ -48,14 +48,7 @@ L'application tourne sur le port 8051 donc il suffit de se rendre sur localhost:
 projet-python/
 |-- assets/
 |   |-- style.css
-|   |--favicon.ico
-|
-|-- example_images/
-|   |-- composants_01.png
-|   |-- composants_01.png
-|   |-- expl_dashboard.png   
-|   |-- lozere.png
-|
+|   |-- favicon.ico
 |
 |-- appFunctions.py
 |-- main.py
@@ -88,5 +81,5 @@ Nous attendons les prochaines élections en 2022 pour voir l'évolution de nos a
 
 
 ## Auteurs
-Richard Fouquoire
-Emily Renard
+Richard FOUQUOIRE &
+Emily RENARD

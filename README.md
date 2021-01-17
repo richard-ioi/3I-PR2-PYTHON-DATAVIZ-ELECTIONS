@@ -6,7 +6,7 @@ Le dashboard représente les résultats des élections présidentielles françai
 Une fois l'application lancée, vous aurez accès au Dashboard permettant de visualiser les différentes représentations des données. Divers composants permettent de modifier l'affichage des données, donnant ainsi une vision sur les résulats de toutes les communes et départements de France. \
 ![composants selection](example_images/composants_01.png) ![composants selection](example_images/composants_02.png) \
 Ces options vous permettent de visualiser les données de chaque département voire de chaque commune (échelle spécifique à la carte).
-Par défault, les premières données affichées sont celles de l'Ain, et le taux de participation à l'échelle nationale.
+Par défault, les premières données affichées sont celles de l'Ain, et le taux de participation à l'échelle nationale en 1995.
 ### Exemple de Dashboard
 Le dashboard ci-dessous montre les données spécifiques à la Lozère en 2017. 
 ![composants selection](example_images/lozere.png)

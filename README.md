@@ -1,6 +1,49 @@
 # Projet Python
 Projet Python E3FI-2020 du premier semestre
 Le dashboard représente les résultats des élections présidentielles françaises entre 1995 et 2017
+## Présentation du Dashboard
+### Utilisation de l'application
+Une fois l'application lancée, vous aurez accès au Dashboard permettant de visualiser les différentes représentations des données. Divers composants permettent de modifier l'affichage des données, donnant ainsi une vision sur les résulats de toutes les communes et départements de France. 
+![composants selection](example_images/composants_01.png) ![composants selection](example_images/composants_02.png) \
+Ces options vous permettent de visualiser les données de chaque département voire de chaque commune (échelle spécifique à la carte).
+Par défault, les premières données affichées sont celles de l'Ain, et le taux de participation à l'échelle nationale.
+### Exemple de Dashboard
+Le dashboard ci-dessous montre les données spécifiques à la Lozère en 2017. 
+![composants selection](example_images/lozere.png)
+
+### Durée de chargement
+Le chargement de la page peut prendre quelques minutes en fonction de la puissance de votre machine. Lorsque l'onglet de l'application dans le navigateur cesse d'afficher "Updating..." , les données que vous avez sélectionnées sont toutes affichées. 
+
+## User guide
+Ces instructions permettent de faire tourner l'application sur votre machine.
+### Prérequis
+S'assurer que python est bien installé sur votre machine. Si ce n'est pas le cas veuillez suivre les [instructions d'installation de python](https://www.python.org/downloads/). \
+\
+L'application utilise plusieurs modules de python qu'il faudra s'assuer d'avoir installé pour la faire fonctionner.
+```
+$ pip install plotly dash dash_core_components dash_html_components pandas json io urllib requests
+```
+### Installation de l'application
+Pour installer l'application il suffit de cloner le projet, en exécutant la commande suivante : 
+````
+$ git clone https://git.esiee.fr/fouquoir/projet-python.git
+````
+
+L'application peut ensuite être lancée : \
+Sur Linux ou Mac OS X 
+````
+$ cd /path/projet-python/
+$ python3 main.py
+````
+Sur Windows :
+`````
+$ cd /path/projet-python/
+$ python main.py
+`````
+L'application tourne sur le port 8051 donc il suffit de se rendre sur localhost:8051 dans le navigateur de votre choix.
+
+## Developper guide
+
 
 ## Rapport d'analyse
 ### Présentation
@@ -13,20 +56,8 @@ Le taux de participation est illustré par une carte choroplèthe et un histogra
 
 ### Conclusion
 
-## User guide
-Ces instructions permettent de faire tourner l'application sur votre machine.
-### Prérequis
-L'application utilise plusieurs modules de python qu'il faudra s'assuré d'avoir installé pour la faire fonctionner.
-```
-pip install plotly dash dash_core_components dash_html_components pandas json io urllib requests
 
-```
-### Installation de l'application
-L'application tourne en local, il suffit de cloner le repo sur votre machine et 
-````
-/path/projet-python/app2.py
-````
-## Developper guide
+
 
 ## Auteurs
 Richard Fouquoire

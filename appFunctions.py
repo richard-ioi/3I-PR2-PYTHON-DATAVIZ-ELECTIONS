@@ -50,4 +50,3 @@ def add_zeros_ewt(df, code):
             zeros=''
         df.loc[vCompteurCode,'code']=str(code+zeros+str(i))
         vCompteurCode=vCompteurCode+1
-    

@@ -153,18 +153,9 @@ def participation_rate_town(dYear,code):
     df_rate=department_query(dep,dYear)
     df_rate=df_rate.rename(columns={'code_de_la_commune':'code'})
     df_rate=df_rate.reset_index()
-    zeros=''
-    vCompteur=0
-    for j in (df_rate['code']):
-        if(len(str(j))==1):
-            zeros='00'
-        elif(len(str(j))==2):
-            zeros='0'
-        elif(len(str(j))==3):
-            zeros=''
-        df_rate.loc[vCompteur,'code']=str(code+zeros+str(j))
-        df_rate.loc[vCompteur,'%_vot/ins']=float(df_rate.loc[vCompteur,'%_vot/ins'].replace(',','.'))
-        vCompteur=vCompteur+1
+    add_zeros_ewt(df_rate, code)
+    for i in range (df_rate['%_vot/ins'].size):
+        df_rate.loc[i,'%_vot/ins']=float(df_rate.loc[i,'%_vot/ins'].replace(',','.'))
     df_rate['code']=df_rate['code'].astype(str)
     df_rate['%_vot/ins']=df_rate['%_vot/ins'].astype(float)
     return df_rate

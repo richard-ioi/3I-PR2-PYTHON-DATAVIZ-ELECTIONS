@@ -591,7 +591,6 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
     Input('year-slider', 'value'),
     Input('round-select', 'value'),
     Input('map-scale', 'value'),
-    Input('map-format', 'value'),
     Input('departments', 'value')
 )
 def update_piechart(selected_year, selected_round, selected_format, selected_departement):
@@ -623,7 +622,7 @@ def update_piechart(selected_year, selected_round, selected_format, selected_dep
     fig1.update_layout(
         margin=dict(l=50, r=0, t=50, b=0),
         height=350, width=400,
-        legend=dict( yanchor="bottom",
+        legend=dict( yanchor="top",
                     y=-0.54,
                     xanchor="left",
                     x=0.01),

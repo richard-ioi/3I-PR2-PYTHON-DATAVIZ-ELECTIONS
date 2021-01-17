@@ -3,8 +3,9 @@ Projet Python E3FI-2020 du premier semestre
 Le dashboard représente les résultats des élections présidentielles françaises entre 1995 et 2017
 
 ## Rapport d'analyse
-### Introduction
-Ce projet a pour but d'analyser les résultats des élections présidentielles en France métropolitaine en fonction des départements et villes. A travers les cartes choroplèthes et les graphiques, nous avons pu créer une application qui permet de mettre en avant les disparités des votes en fonction de la zone étudiée, ainsi que leur orientation politique. 
+### Présentation
+Ce projet a pour but d'analyser les résultats des élections présidentielles en France métropolitaine en fonction des départements et villes. A travers les cartes choroplèthes et les graphiques, nous avons pu créer une application qui permet de mettre en avant les disparités des votes en fonction de la zone étudiée, ainsi que son orientation politique. Les résultats obtenus ont pu confirmer certaines de nos attentes, par exemple que l'Est parisien vote à gauche et l'Ouest à droite. D'autres résultats ont été plus surprenant, comme le fait que les deux départements Corse ont un taux de participation inférieur à 70% pour toutes les élections dont nous avons exploité les données.
+Les résulats obtenus sont présentés ci-dessous, en deux temps d'abord les resultats pour le taux de participation, puis pour les candidats élus.
 
 ### Le taux de participation
 
@@ -26,6 +27,7 @@ L'application tourne en local, il suffit de cloner le repo sur votre machine et
 ````
 /path/projet-python/app2.py
 ````
+## Developper guide
 
 ## Auteurs
 Richard Fouquoire

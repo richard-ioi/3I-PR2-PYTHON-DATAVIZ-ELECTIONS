@@ -3,7 +3,7 @@ Projet Python E3FI-2020 du premier semestre
 Le dashboard représente les résultats des élections présidentielles françaises entre 1995 et 2017
 ## Présentation du Dashboard
 ### Utilisation de l'application
-Une fois l'application lancée, vous aurez accès au Dashboard permettant de visualiser les différentes représentations des données. Divers composants permettent de modifier l'affichage des données, donnant ainsi une vision sur les résulats de toutes les communes et départements de France. 
+Une fois l'application lancée, vous aurez accès au Dashboard permettant de visualiser les différentes représentations des données. Divers composants permettent de modifier l'affichage des données, donnant ainsi une vision sur les résulats de toutes les communes et départements de France. \
 ![composants selection](example_images/composants_01.png) ![composants selection](example_images/composants_02.png) \
 Ces options vous permettent de visualiser les données de chaque département voire de chaque commune (échelle spécifique à la carte).
 Par défault, les premières données affichées sont celles de l'Ain, et le taux de participation à l'échelle nationale.

@@ -268,6 +268,15 @@ app.layout = html.Div([
                 html.P(children='''
                     Grâce aux diverses options, vous pourez mettre en évidence les disparités 
                     des votes et l'orientation politique des citoyens à échelle nationale ou départementale au cours des 5 dernières élections.
+                '''),
+                html.P(children='''
+                    Projet E3FI par Richard FOUQUOIRE & Emily RENARD
+                    '''),
+                html.P(children='''
+                    Tracés des départements et villes par Grégoire David, traduits du format SHP fourni par l'IGN vers le format GeoJSON:  https://github.com/gregoiredavid/france-geojson
+                '''),
+                html.P(children='''
+                    Données des élections fournies par le site data.gouv.fr
                 ''')
             ]
     ),
@@ -550,6 +559,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                         df_final_rate=participation_rate_town(j[1], depart)
 
     elif(selected_format=='candidat'):
+        vColor='gagnant'
         if(selected_scale=='fr'):
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
@@ -557,7 +567,6 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                         df_final_rate=election_winner_department(j[0])
                     elif(selected_round == 'T2'):
                         df_final_rate=election_winner_department(j[1])
-            vColor='gagnant'
             vHoverLoc='dep_names'
         elif(selected_scale=='dep'):
             for i,j  in year_name.items():
@@ -566,18 +575,24 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
                         df_final_rate=election_winner_town(j[0],depart)
                     elif(selected_round == 'T2'):
                         df_final_rate=election_winner_town(j[1],depart)
-            vColor='gagnant'
             vHoverLoc='libellé_de_la_commune'
 
     # Map configuration
-    map = px.choropleth_mapbox(df_final_rate, geojson=geo, color=vColor,
-                        locations="code", featureidkey="properties.code",
-                        center={"lat": vLat, "lon": vLon},
-                        mapbox_style="carto-positron", zoom=vZoom, 
-                        color_discrete_sequence=px.colors.diverging.Picnic,
-                        
-                        hover_data={vHoverLoc}
-                    )
+    if(selected_format=='participation'):
+        map = px.choropleth_mapbox(df_final_rate, geojson=geo, color=vColor,
+                            locations="code", featureidkey="properties.code",
+                            center={"lat": vLat, "lon": vLon},
+                            mapbox_style="carto-positron", zoom=vZoom, 
+                            color_discrete_sequence=px.colors.diverging.Picnic,
+                            hover_data={vHoverLoc}
+                        )
+    elif(selected_format=='candidat'):
+        map = px.choropleth_mapbox(df_final_rate, geojson=geo, color=vColor,
+                            locations="code", featureidkey="properties.code",
+                            center={"lat": vLat, "lon": vLon},
+                            mapbox_style="carto-positron", zoom=vZoom,
+                            hover_data={vHoverLoc}
+                        )
     map.update_geos(fitbounds="locations", visible=False)
     map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                     width=550, height=650,

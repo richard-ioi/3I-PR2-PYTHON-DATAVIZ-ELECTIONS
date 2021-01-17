@@ -112,12 +112,7 @@ def participation_rate_department(dYear):
         i=reformat_department(str(i))
         dT[i]=[average/vD['%_vot/ins'].size]
 
-    df_rate=pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation'])
-    df_rate=df_rate.reset_index()
-    df_rate=df_rate.rename(columns={'index':'code'})
-    d_department_series=pd.Series(department_list,name='dep_names')
-    df_rate=pd.concat([df_rate,d_department_series], axis=1)
-    return df_rate
+    return pd.concat([pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation']).reset_index().rename(columns={'index':'code'}),pd.Series(department_list,name='dep_names')], axis=1)
 
 def participation_rate_town(dYear,code):
     """Calculates the participation rate for each town in a given department in order to create a dataframe containing the following columns:
@@ -133,17 +128,14 @@ def participation_rate_town(dYear,code):
     dep=code
     if(code[0]=='0'):
         dep=code[1]
-    df_rate=department_query(dep,dYear)
-    df_rate=df_rate.rename(columns={'code_de_la_commune':'code'})
-    df_rate=df_rate.reset_index()
+    df_rate=department_query(dep,dYear).rename(columns={'code_de_la_commune':'code'}).reset_index()
     add_zeros_ewt(df_rate, code)
     for i in range (df_rate['%_vot/ins'].size):
         df_rate.loc[i,'%_vot/ins']=float(df_rate.loc[i,'%_vot/ins'].replace(',','.'))
-    df_rate['code']=df_rate['code'].astype(str)
     df_rate['%_vot/ins']=df_rate['%_vot/ins'].astype(float)
     return df_rate
 
-def election_winner_town(dYear,code):
+def election_winner_town(dYear,code,scale='dep'):
     """Finds the winner of the election for each town in a given department in order to create a dataframe containing the following columns:
     code, gagnant, voix, libellé_de_la_commune.
 
@@ -155,38 +147,34 @@ def election_winner_town(dYear,code):
     dataframe: New dataframe with 4 columns.
     """
     dT={}
-    dMax=[]
     dep=code
     if(code[0]=='0'):
         dep=code[1]
-    dCand=department_query(dep,dYear)
-    dCand=dCand.rename(columns={'code_de_la_commune':'code'})
-    dCand['code']=dCand['code'].astype(str)
-    dCand=dCand.reset_index()
-    add_zeros_ewt(dCand, code)
-    vCompt=0
-    dVille=[]
-    for x in dCand['code']:
+    dCand=department_query(dep,dYear).rename(columns={'code_de_la_commune':'code'}).reset_index()
+    if(scale=='dep'):
+        add_zeros_ewt(dCand, code)
+        dMax=[]
+        dVille=[]
+    for index, x in enumerate(dCand['code']):
         vC=''
         vCint=0
         max=0
-        winner=''
         while('%_voix/exp'+vC in dCand):
-            if(float((str(dCand.loc[vCompt]['%_voix/exp'+str(vC)])).replace(',','.'))>max):
-                max=float((dCand.loc[vCompt]['%_voix/exp'+str(vC)]).replace(',','.'))
-                winner=str(dCand.loc[vCompt]['nom'+str(vC)])+' '+str(dCand.loc[vCompt]['prénom'+str(vC)])
+            if(float(dCand.loc[index]['%_voix/exp'+vC].replace(',','.'))>max):
+                max=float((dCand.loc[index]['%_voix/exp'+vC]).replace(',','.'))
+                winner=str(dCand.loc[index]['nom'+vC])+' '+str(dCand.loc[index]['prénom'+vC])
             vCint=vCint+1
             vC=str(vCint)
         dT[x]=winner
-        dMax.append(max)
-        dVille.append(dCand.loc[vCompt]['libellé_de_la_commune'])
-        vCompt=vCompt+1
-    dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant'])
-    dFinal=dFinal.reset_index()
-    dFinal=dFinal.rename(columns={'index':'code'})
-    dMaxSeries=pd.Series(dMax,name='voix')
-    dVilleSeries=pd.Series(dVille,name='libellé_de_la_commune')
-    dFinal=pd.concat([dFinal,dMaxSeries,dVilleSeries], axis=1)
+        if(scale=='dep'):
+            dMax.append(max)
+            dVille.append(dCand.loc[index]['libellé_de_la_commune'])
+
+    dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant']).reset_index().rename(columns={'index':'code'})
+    if(scale=='dep'):
+        dMaxSeries=pd.Series(dMax,name='voix')
+        dVilleSeries=pd.Series(dVille,name='libellé_de_la_commune')
+        dFinal=pd.concat([dFinal,dMaxSeries,dVilleSeries], axis=1)
     return dFinal
 
 def election_winner_department(dYear):
@@ -203,28 +191,9 @@ def election_winner_department(dYear):
     department_list=[]
     for i in department_names.keys():
         department_list.append(department_names.get(i))
-        vD=election_winner_town(dYear,i)
-        df_candidates={}
-        for j in vD['gagnant']:
-            if(j not in df_candidates):
-                df_candidates[j]=1
-            else:
-                df_candidates[j]=df_candidates[j]+1
-        max=0
-        winner=''
-        for k in df_candidates.keys():
-            if(int(df_candidates.get(k))>max):
-                max=int(df_candidates.get(k))
-                winner=k
-        i=reformat_department(str(i))
-        dT[i]=winner
+        dT[reformat_department(str(i))]=election_winner_town(dYear,i,'fr')['gagnant'].value_counts().index[0]
 
-    dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant'])
-    dFinal=dFinal.reset_index()
-    dFinal=dFinal.rename(columns={'index':'code'})
-    dDepartmentSeries=pd.Series(department_list,name='dep_names')
-    dFinal=pd.concat([dFinal,dDepartmentSeries], axis=1)
-    return dFinal
+    return pd.concat([pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant']).reset_index().rename(columns={'index':'code'}),pd.Series(department_list,name='dep_names')], axis=1)
 
 def dict_selection(selected_year,selected_round):
     if(selected_round == 'T1'):
@@ -499,7 +468,7 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             geo = json.load(response)
         vLat=47.5
         vLon=2.6
-        vZoom=4.4
+        vZoom=4.2
         vHoverLoc='Libellé du département'
     # Opening geojson file for department scale and setting the center of the view to the coordinates of the main town of the department     
     elif(selected_scale =='dep'):
@@ -589,6 +558,4 @@ def update_piechart(selected_year, selected_round, selected_format, selected_dep
     return fig1
 
 if __name__ == '__main__':
-    print("Rendez-vous sur localhost:8051 pour finir le chargement des données (recharger la page si erreur)")
-    print("....................................")
     app.run_server(debug=False, port=8051)

@@ -1,16 +1,16 @@
-def normaliseNames(name):
+def normalise_names(name):
     """ In column header names : replaces spaces by _ , lowers all the characters and removes any disruptive characters 
 
     Parameters:
     name (string): the name of the dataframe 
 
     Returns:
-    object:Modified dataframe 
+    dataframe:Modified dataframe 
 
    """
     return name.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('-', '_').str.replace('.', '')
 
-def commaToDot(data):
+def comma_to_dot(data):
     """ Replaces commas by dots to enable string to float conversions. Use only on columns holding numbers and not letters
     
     Parameters:
@@ -25,19 +25,29 @@ def commaToDot(data):
         convert.append(temp)   
     return convert
 
-def departmentQuery(code, name):
+def department_query(code, name):
     """Queries dataframe to create a sub-frame depending on the selected departement
 
     Parameters:
     code(string): the code of the required departement, a number between 1 ad 95
-    name(object): dataframe to be queried 
+    name(dataframe): dataframe to be queried 
 
     Returns:
-    object: sub-frame holding data from the selected departement
+    dataframe: sub-frame holding data from the selected departement
     """
     return name.query(f'code_du_département == "{code}"')
 
-def candidateData(data_frame, name):
-    """Gathers all the columns relating to the chosen candidate
-    """
-    return data_frame.columns.replace('.', name)
+def add_zeros_ewt(df, code):
+    """Adds zeros to town codes in order to have a standard length."""
+    zeros=''
+    vCompteurCode=0
+    for i in df['code']:
+        if(len(str(i))==1):
+            zeros='00'
+        elif(len(str(i))==2):
+            zeros='0'
+        elif(len(str(i))==3):
+            zeros=''
+        df.loc[vCompteurCode,'code']=str(code+zeros+str(i))
+        vCompteurCode=vCompteurCode+1
+    

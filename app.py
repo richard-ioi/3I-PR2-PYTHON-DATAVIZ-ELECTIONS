@@ -3,7 +3,6 @@
 # Run this app with `python app.py` and
 # visit localhost:8051/ in your web browser.
 
-""" imports """
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -15,11 +14,59 @@ import json
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from urllib.request import urlopen
-from appFunctions import normaliseNames
-from appFunctions import departmentQuery
-from appFunctions import commaToDot
+from appFunctions import normalise_names
+from appFunctions import department_query
+from appFunctions import comma_to_dot
+from appFunctions import add_zeros_ewt
 
-""" Dictionnary with department codes as keys and names as values """
+#The following section is used to imports csv data files used in the program
+url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
+
+url2002T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T1.csv").content
+url2002T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T2.csv").content
+
+url2007T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T1.csv").content
+url2007T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T2.csv").content
+
+url2012T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T1.csv").content
+url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T2.csv").content
+
+url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
+url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
+
+url_main_town=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/code_cheflieux.csv").content
+
+# The following section is used to read the csv files used in the program
+#Dataframe from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
+df_951 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), nrows=36671, low_memory=False)
+df_952 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), skiprows=36671, low_memory=False)
+#Dataframe from the first and second rounds of the 2002 french presidential elections 
+df_021 = pd.read_csv(io.StringIO(url2002T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+df_022 = pd.read_csv(io.StringIO(url2002T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+#Dataframe from the first and second rounds of the 2007 french presidential elections 
+df_071 = pd.read_csv(io.StringIO(url2007T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+df_072 = pd.read_csv(io.StringIO(url2007T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+#Dataframe from the first round of the 2012 french presidential elections
+df_121 = pd.read_csv(io.StringIO(url2012T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+df_122 = pd.read_csv(io.StringIO(url2012T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+#Dataframe from the first and second rounds of the 2017 french presidential elections 
+df_171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+df_172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+#Dataframe providing information such as the coordinates for all the main towns of France
+df_main_town = pd.read_csv(io.StringIO(url_main_town.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
+#removes disruptive characters from column names of dataframes lowers all characters
+df_951.columns = normalise_names(df_951)
+df_952.columns = normalise_names(df_952)
+df_021.columns = normalise_names(df_021)
+df_022.columns = normalise_names(df_022)
+df_071.columns = normalise_names(df_071)
+df_072.columns = normalise_names(df_072)
+df_121.columns = normalise_names(df_121)
+df_122.columns = normalise_names(df_122)
+df_171.columns = normalise_names(df_171)
+df_172.columns = normalise_names(df_172)
+
+# Dictionnary with department codes as keys and names as values 
 department_names = {
     '1': 'Ain', '2': 'Aisne', '3': 'Allier', '4': 'Alpes-de-Haute-Provence', '5': 'Hautes-Alpes','6': 'Alpes-Maritimes', 
     '7': 'Ardèche', '8': 'Ardennes', '9': 'Ariège', '10': 'Aube', '11': 'Aude','12': 'Aveyron', '13': 'Bouches-du-Rhône', 
@@ -36,156 +83,127 @@ department_names = {
     '83': 'Var', '84': 'Vaucluse', '85': 'Vendée','86': 'Vienne', '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
     '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne', '95': 'Val-d\'Oise',
 }
-
-"""importing csv data files """
-url1995=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_1995_par_ville.csv").content
-
-url2002T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T1.csv").content
-url2002T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2002_T2.csv").content
-
-url2007T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T1.csv").content
-url2007T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2007_T2.csv").content
-
-url2012T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T1.csv").content
-url2012T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2012_T2.csv").content
-
-url2017T1=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T1.csv").content
-url2017T2=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/election_2017_T2.csv").content
-
-urlChefLieux=requests.get("https://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/code_cheflieux.csv").content
-
-###### reading csv data files ############
-#Data from the first and second rounds of the 1995 french presidential elections (round 1 : row 0 to 36671, round 2 : row X to Y)
-d951 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), nrows=36671, low_memory=False)
-d952 = pd.read_csv(io.StringIO(url1995.decode('utf-8')), skiprows=36671, low_memory=False)
-
-#Data from the first and second rounds of the 2002 french presidential elections 
-d021 = pd.read_csv(io.StringIO(url2002T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-d022 = pd.read_csv(io.StringIO(url2002T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-#Data from the first and second rounds of the 2007 french presidential elections 
-d071 = pd.read_csv(io.StringIO(url2007T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-d072 = pd.read_csv(io.StringIO(url2007T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-#Data from the first round of the 2012 french presidential elections
-d121 = pd.read_csv(io.StringIO(url2012T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-d122 = pd.read_csv(io.StringIO(url2012T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-#Data from the first and second rounds of the 2017 french presidential elections 
-d171 = pd.read_csv(io.StringIO(url2017T1.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-d172 = pd.read_csv(io.StringIO(url2017T2.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-
-dChefLieux = pd.read_csv(io.StringIO(urlChefLieux.decode('utf-8')) ,error_bad_lines=False, sep=';', low_memory=False)
-#removes disruptive characters from column names of csv files, lowers all characters
-d951.columns = normaliseNames(d951)
-d952.columns = normaliseNames(d952)
-d021.columns = normaliseNames(d021)
-d022.columns = normaliseNames(d022)
-d071.columns = normaliseNames(d071)
-d072.columns = normaliseNames(d072)
-d121.columns = normaliseNames(d121)
-d122.columns = normaliseNames(d122)
-d171.columns = normaliseNames(d171)
-d172.columns = normaliseNames(d172)
-"""Dictionnary with years as keys and an array of the associated dataframes as values"""
+#Dictionnary with years as keys and an array of the associated dataframes as values
 year_name = {
-    1995 : [d951, d952],
-    2002 : [d021, d022],
-    2007 : [d071, d072],
-    2012 : [d121, d122],
-    2017 : [d171, d172]
+    1995 : [df_951, df_952],
+    2002 : [df_021, df_022],
+    2007 : [df_071, df_072],
+    2012 : [df_121, df_122],
+    2017 : [df_171, df_172]
 }
 
-def trouve_chef_lieu(code):
-    """Queries dChefLieux to create a sub-frame depending on the selected departement
+def main_town(code):
+    """Queries df_main_town to create a sub-frame depending on the selected departement.
 
     Parameters:
-    code(string): the code of the required departement, a number between 1 ad 95
+    code(string): the code of the required departement, a number between 1 ad 95.
 
     Returns:
-    object: sub-frame holding data from the selected departement
+    dataframe: Sub-frame holding data from the selected departement.
     """
-    return dChefLieux.query(f'code== "{code}"')['geom_x_y'].iloc[0]
+    return df_main_town.query(f'code== "{code}"')['geom_x_y'].iloc[0]
 
-def calcul_taux_participation_departement(dYear):
+def participation_rate_department(dYear):
+    """Calculates the average participation rate in  each department in order to create a dataframe containing the following columns : 
+    code, taux_de_participation, dep_names. This method is used in the choropleth map.
+
+    Parameters:
+    dYear(dataframe) : Chosen election year.
+
+    Returns:
+    dataframe: New dataframe with 3 columns.
+    """
     dT={}
-    dDepartmentList=[]
+    department_list=[]
     for i in department_names.keys():
-        dDepartmentList.append(department_names.get(i))
-        vD=departmentQuery(i,dYear)
-        moyenne=0
+        department_list.append(department_names.get(i))
+        vD=department_query(i,dYear)
+        average=0
         for j in (vD['%_vot/ins']):
             vS=j
             vS=vS.replace(',','.')
-            moyenne+=float(vS)
+            average+=float(vS)
         if (len(i)==1):
             i='0'+i
 
-        dT[i]=[moyenne/vD['%_vot/ins'].size]
+        dT[i]=[average/vD['%_vot/ins'].size]
 
-    dTaux=pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation'])
-    dTaux=dTaux.reset_index()
-    dTaux=dTaux.rename(columns={'index':'code'})
-    dDepartmentSeries=pd.Series(dDepartmentList,name='dep_names')
-    dTaux=pd.concat([dTaux,dDepartmentSeries], axis=1)
-    return dTaux
+    df_rate=pd.DataFrame.from_dict(dT,orient='index',columns=['taux_de_participation'])
+    df_rate=df_rate.reset_index()
+    df_rate=df_rate.rename(columns={'index':'code'})
+    d_department_series=pd.Series(department_list,name='dep_names')
+    df_rate=pd.concat([df_rate,d_department_series], axis=1)
+    return df_rate
 
-def calcul_taux_participation_commune(dYear,code):
+def participation_rate_town(dYear,code):
+    """Calculates the participation rate for each town in a given department in order to create a dataframe containing the following columns:
+    code, %_vot/ins.
+
+    Parameters:
+    dYear(dataframe): Chosen election year.
+    code(str): Chosen department
+
+    Returns:
+    dataframe: New dataframe with 2 columns.
+    """
     dep=code
     if(code[0]=='0'):
         dep=code[1]
     print("DEPARTEMENT SELECTIONNE "+dep)
-    dTaux=departmentQuery(dep,dYear)
-    dTaux=dTaux.rename(columns={'code_de_la_commune':'code'})
-    dTaux=dTaux.reset_index()
+    df_rate=department_query(dep,dYear)
+    df_rate=df_rate.rename(columns={'code_de_la_commune':'code'})
+    df_rate=df_rate.reset_index()
     zeros=''
     vCompteur=0
-    for j in (dTaux['code']):
+    for j in (df_rate['code']):
         if(len(str(j))==1):
             zeros='00'
         elif(len(str(j))==2):
             zeros='0'
         elif(len(str(j))==3):
             zeros=''
-        dTaux.loc[vCompteur,'code']=str(code+zeros+str(j))
-        dTaux.loc[vCompteur,'%_vot/ins']=float(dTaux.loc[vCompteur,'%_vot/ins'].replace(',','.'))
+        df_rate.loc[vCompteur,'code']=str(code+zeros+str(j))
+        df_rate.loc[vCompteur,'%_vot/ins']=float(df_rate.loc[vCompteur,'%_vot/ins'].replace(',','.'))
         vCompteur=vCompteur+1
-    dTaux['code']=dTaux['code'].astype(str)
-    dTaux['%_vot/ins']=dTaux['%_vot/ins'].astype(float)
-    return dTaux
+    df_rate['code']=df_rate['code'].astype(str)
+    df_rate['%_vot/ins']=df_rate['%_vot/ins'].astype(float)
+    return df_rate
 
-def candidat_gagnant_commune(dYear,code):
+def election_winner_town(dYear,code):
+    """Finds the winner of the election for each town in a given department in order to create a dataframe containing the following columns:
+    code, gagnant, voix, libellé_de_la_commune.
+
+    Parameters:
+    dYear(dataframe): Chosen election year.
+    code(str): Chosen department
+
+    Returns:
+    dataframe: New dataframe with 4 columns.
+    """
     dT={}
     dMax=[]
     dep=code
     if(code[0]=='0'):
         dep=code[1]
-    zeros=''
-    dCand=departmentQuery(dep,dYear)
+    dCand=department_query(dep,dYear)
     dCand=dCand.rename(columns={'code_de_la_commune':'code'})
     dCand['code']=dCand['code'].astype(str)
     dCand=dCand.reset_index()
-    vCompteurCode=0
-    for i in dCand['code']:
-        if(len(str(i))==1):
-            zeros='00'
-        elif(len(str(i))==2):
-            zeros='0'
-        elif(len(str(i))==3):
-            zeros=''
-        dCand.loc[vCompteurCode,'code']=str(code+zeros+str(i))
-        vCompteurCode=vCompteurCode+1
+    add_zeros_ewt(dCand, code)
     vCompt=0
     dVille=[]
     for x in dCand['code']:
         vC=''
         vCint=0
         max=0
-        gagnant=''
+        winner=''
         while('%_voix/exp'+vC in dCand):
             if(float((str(dCand.loc[vCompt]['%_voix/exp'+str(vC)])).replace(',','.'))>max):
                 max=float((dCand.loc[vCompt]['%_voix/exp'+str(vC)]).replace(',','.'))
-                gagnant=str(dCand.loc[vCompt]['nom'+str(vC)])+' '+str(dCand.loc[vCompt]['prénom'+str(vC)])
+                winner=str(dCand.loc[vCompt]['nom'+str(vC)])+' '+str(dCand.loc[vCompt]['prénom'+str(vC)])
             vCint=vCint+1
             vC=str(vCint)
-        dT[x]=gagnant
+        dT[x]=winner
         dMax.append(max)
         dVille.append(dCand.loc[vCompt]['libellé_de_la_commune'])
         vCompt=vCompt+1
@@ -197,34 +215,42 @@ def candidat_gagnant_commune(dYear,code):
     dFinal=pd.concat([dFinal,dMaxSeries,dVilleSeries], axis=1)
     return dFinal
 
-def candidat_gagnant_departement(dYear):
+def election_winner_department(dYear):
+    """Finds the winner of the election for each department in order to create a dataframe containing the following columns:
+    code, gagnant, dep_names.
+
+    Parameters:
+    dYear(dataframe): Chosen election year.
+
+    Returns:
+    dataframe: New dataframe with 3 columns.
+    """
     dT={}
-    dDepartmentList=[]
+    department_list=[]
     for i in department_names.keys():
-        dDepartmentList.append(department_names.get(i))
-        vD=candidat_gagnant_commune(dYear,i)
-        dCandidats={}
+        department_list.append(department_names.get(i))
+        vD=election_winner_town(dYear,i)
+        df_candidates={}
         for j in vD['gagnant']:
-            if(j not in dCandidats):
-                dCandidats[j]=1
+            if(j not in df_candidates):
+                df_candidates[j]=1
             else:
-                dCandidats[j]=dCandidats[j]+1
+                df_candidates[j]=df_candidates[j]+1
         max=0
-        gagnant=''
-        for k in dCandidats.keys():
-            if(int(dCandidats.get(k))>max):
-                max=int(dCandidats.get(k))
-                gagnant=k
+        winner=''
+        for k in df_candidates.keys():
+            if(int(df_candidates.get(k))>max):
+                max=int(df_candidates.get(k))
+                winner=k
         if (len(i)==1):
             i='0'+i
-        dT[i]=gagnant
+        dT[i]=winner
 
     dFinal=pd.DataFrame.from_dict(dT,orient='index',columns=['gagnant'])
     dFinal=dFinal.reset_index()
     dFinal=dFinal.rename(columns={'index':'code'})
-    dDepartmentSeries=pd.Series(dDepartmentList,name='dep_names')
+    dDepartmentSeries=pd.Series(department_list,name='dep_names')
     dFinal=pd.concat([dFinal,dDepartmentSeries], axis=1)
-    #print(dFinal)
     return dFinal
 
 ############## dash app ############
@@ -240,8 +266,8 @@ app.layout = html.Div([
                     les résultats des élections présidentielles en France métropolitaine.
                 '''),
                 html.P(children='''
-                    Grâce aux divers menus, vous pourez mettre en évidence les disparités 
-                    des votes à échelle nationale ou départementale au cours des 5 dernières élections.
+                    Grâce aux diverses options, vous pourez mettre en évidence les disparités 
+                    des votes et l'orientation politique des citoyens à échelle nationale ou départementale au cours des 5 dernières élections.
                 ''')
             ]
     ),
@@ -253,7 +279,7 @@ app.layout = html.Div([
                             html.Div(children=[
                                 html.H4(children="Département"),
                                 dcc.Dropdown(
-                                    id='departements',
+                                    id='departments',
                                     options=[
                                         {'label': str(i)+" - "+j, 'value': i} for i, j in department_names.items()
                                     ],
@@ -345,7 +371,7 @@ app.layout = html.Div([
                     ])
                 ]),
                 html.Div([
-                    dcc.Graph(id='test-graph')
+                    dcc.Graph(id='scatter-graph')
                 ]), 
                 html.Div(className='align-elements', children=[
                     html.Div([
@@ -361,23 +387,33 @@ app.layout = html.Div([
     )
 ])
 @app.callback(
-   Output('test-graph', 'figure'),
-   Input('departements', 'value'),
+   Output('scatter-graph', 'figure'),
+   Input('departments', 'value'),
    Input('year-slider', 'value'),
    Input('round-select', 'value'),
-   Input('map-format', 'value'),
    Input('axis-categories1', 'value'),
    Input('axis-categories2', 'value')
 )
-def update_figure(selected_departement, selected_year, selected_round, selected_format, selected_c1, selected_c2):
-    #if(selected_format == candidat) 
+def update_figure(selected_departement, selected_year, selected_round, selected_c1, selected_c2):
+    """Callback function used to update the scatter graph of the app.
+
+    Parameters:
+    selected_department(str): Value of selected the department from the dropdown.
+    selected_year(int): Value of selected the election year from the slider.
+    selected_round(str): Value of selected the election round from the dropdown.
+    selected_c1(str): Value of selected data to be show on x-axis from the dropdown.
+    selected_c2(str): Value of selected data to be show on y-axis from the dropdown.
+
+    Returns:
+    figure : Scatter graph.
+    """
     global filtered_df
     for i,j  in year_name.items():
         if(i == selected_year[0]):
             if(selected_round == 'T1'):
-                filtered_df = departmentQuery(selected_departement, j[0])
+                filtered_df = department_query(selected_departement, j[0])
             elif(selected_round == 'T2'):
-                filtered_df = departmentQuery(selected_departement, j[1])
+                filtered_df = department_query(selected_departement, j[1])
 
     fig1 = px.scatter(filtered_df, x=selected_c1, y=selected_c2, hover_name="libellé_de_la_commune", title=""+str(selected_c2)+" en fonction des "+ str(selected_c1) +" dans le "+str(selected_departement)+" en "+str(selected_year[0]))
     fig1.update_layout(
@@ -393,38 +429,40 @@ def update_figure(selected_departement, selected_year, selected_round, selected_
     return fig1
 @app.callback(
     Output('histogram', 'figure'),
-    Input('departements', 'value'),
+    Input('departments', 'value'),
     Input('round-select', 'value')
 )
 def update_historgram(selected_departement, selected_round):
-    """Renders a histogram showing the participation rate over the past 5 elections
+    """Callback function that renders a histogram showing the participation rate over the past 5 elections.
+    The histogram contains 5 overlaid traces, 4 of which are masked upon launching the app.
+
     Parameters:
-    selected_departement(string): the value of the department selected from the 'departements' dropdown menu
-    selected_round(string): the value of the round selected from the 'round-select' dropdown menu
+    selected_department(str): Value of selected the department from the dropdown.
+    selected_round(str): Value of selected the election round from the dropdown.
 
     Returns:
-    Figure containing 5 overlaid histograms, 4 of which are masked upon launching the app
+    figure: Histogram.
     """
     global x0, x1, x2, x3, x4
     if(selected_round == 'T1'):
-            x0 = departmentQuery(selected_departement, d951)
-            x1 = departmentQuery(selected_departement, d021)
-            x2 = departmentQuery(selected_departement, d071)
-            x3 = departmentQuery(selected_departement, d121)
-            x4 = departmentQuery(selected_departement, d171)
+            x0 = department_query(selected_departement, df_951)
+            x1 = department_query(selected_departement, df_021)
+            x2 = department_query(selected_departement, df_071)
+            x3 = department_query(selected_departement, df_121)
+            x4 = department_query(selected_departement, df_171)
     elif(selected_round == 'T2'):
-            x0 = departmentQuery(selected_departement, d952)
-            x1 = departmentQuery(selected_departement, d022)
-            x2 = departmentQuery(selected_departement, d072)
-            x3 = departmentQuery(selected_departement, d122)
-            x4 = departmentQuery(selected_departement, d172)    
+            x0 = department_query(selected_departement, df_952)
+            x1 = department_query(selected_departement, df_022)
+            x2 = department_query(selected_departement, df_072)
+            x3 = department_query(selected_departement, df_122)
+            x4 = department_query(selected_departement, df_172)    
 
     fig= go.Figure()
-    fig.add_trace(go.Histogram(name='1995', x = commaToDot(x0['%_vot/ins'])))
-    fig.add_trace(go.Histogram(name='2002', visible='legendonly', x = commaToDot(x1['%_vot/ins'])))
-    fig.add_trace(go.Histogram(name='2007', visible='legendonly', x = commaToDot(x2['%_vot/ins'])))
-    fig.add_trace(go.Histogram(name='2012', visible='legendonly', x = commaToDot(x3['%_vot/ins'])))
-    fig.add_trace(go.Histogram(name='2017', visible='legendonly', x = commaToDot(x4['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='1995', x = comma_to_dot(x0['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2002', visible='legendonly', x = comma_to_dot(x1['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2007', visible='legendonly', x = comma_to_dot(x2['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2012', visible='legendonly', x = comma_to_dot(x3['%_vot/ins'])))
+    fig.add_trace(go.Histogram(name='2017', visible='legendonly', x = comma_to_dot(x4['%_vot/ins'])))
     fig.update_layout(barmode='overlay',
                         margin=dict(l=0, r=0, t=40, b=0),
                         font=dict(
@@ -451,20 +489,21 @@ def update_historgram(selected_departement, selected_round):
     Input('round-select', 'value'),
     Input('map-scale', 'value'),
     Input('map-format', 'value'),
-    Input('departements', 'value')
+    Input('departments', 'value')
 )
 def update_map(selected_year, selected_round, selected_scale, selected_format, selected_departement):
-    """ Renders the map of France showing the participation rate of each department or town depending on the chosen scale
+    """ Callback function that renders the map of France showing the participation rate or the winning candidate
+    of each department or town depending on the chosen scale and the chosen data.
 
     Parameters:
-    selected_year(): 
-    selected_round()
-    selected_scale()
-    selected_format()
-    selected_departement()
+    selected_year(int): Value of selected the election year from the slider.
+    selected_round(str): Value of selected the election round from the dropdown.
+    selected_scale(str): Value of the selected scale, either 'fr' or 'dep'.
+    selected_format(str): Value of the selected format which determines the data to be shown, either 'participation' or 'candidat'.
+    selected_department(str): Value of selected the department from the dropdown.
 
-    Returns 
-    Figure holding the Choropleth map of France
+    Returns:
+    figure: Choropleth map of France.
     """
     global map
     global geo
@@ -472,23 +511,24 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
     for i in range(1, 10):
         if(depart == str(i)):
             depart = '0'+str(i)
-    ########### REPRESENTATION ECHELLE NATIONALE ######################
+    # Opening geojson file for national scale and setting the view to the center for France. 
     if(selected_scale =='fr'):
         with urlopen('https://france-geojson.gregoiredavid.fr/repo/departements.geojson') as response:
             geo = json.load(response)
             vLat=47.5
             vLon=2.6
             vZoom=4.4
-    ############# REPRESNETATION DEPARTEMENTALE ############################    
+    # Opening geojson file for department scale and setting the center of the view to the coordinates of the main town of the department     
     elif(selected_scale =='dep'):
         print("le dep selec est mtn :" + str(depart))
         with urlopen('http://perso.esiee.fr/~fouquoir/E3/Python_Projet/data/communes/communes-'+depart+'.geojson') as response:
             geo = json.load(response)
-            vCoordinates=trouve_chef_lieu(depart)
+            vCoordinates=main_town(depart)
             print(depart)
             vLat=float(vCoordinates[:12])
             vLon=float(vCoordinates[14:])
             vZoom=7
+    # The following lines set the map dataframe depending on the selected inputs
     if(selected_format=='participation'):
         if(selected_scale=='fr'):
             vColor='taux_de_participation'
@@ -496,41 +536,41 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=calcul_taux_participation_departement(j[0])
+                        df_final_rate=participation_rate_department(j[0])
                     elif(selected_round == 'T2'):
-                        dTauxFinal=calcul_taux_participation_departement(j[1])
+                        df_final_rate=participation_rate_department(j[1])
         elif(selected_scale=='dep'):
             vColor='%_vot/ins'
             vHoverLoc='libellé_de_la_commune'
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=calcul_taux_participation_commune(j[0],depart)
+                        df_final_rate=participation_rate_town(j[0],depart)
                     elif(selected_round == 'T2'):
-                        dTauxFinal=calcul_taux_participation_commune(j[1], depart)
+                        df_final_rate=participation_rate_town(j[1], depart)
 
     elif(selected_format=='candidat'):
         if(selected_scale=='fr'):
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=candidat_gagnant_departement(j[0])
+                        df_final_rate=election_winner_department(j[0])
                     elif(selected_round == 'T2'):
-                        dTauxFinal=candidat_gagnant_departement(j[1])
+                        df_final_rate=election_winner_department(j[1])
             vColor='gagnant'
             vHoverLoc='dep_names'
         elif(selected_scale=='dep'):
             for i,j  in year_name.items():
                 if(i == selected_year[0]):
                     if(selected_round == 'T1'):
-                        dTauxFinal=candidat_gagnant_commune(j[0],depart)
+                        df_final_rate=election_winner_town(j[0],depart)
                     elif(selected_round == 'T2'):
-                        dTauxFinal=candidat_gagnant_commune(j[1],depart)
+                        df_final_rate=election_winner_town(j[1],depart)
             vColor='gagnant'
             vHoverLoc='libellé_de_la_commune'
 
-    ################ TRACAGE DE LA MAP ###########################
-    map = px.choropleth_mapbox(dTauxFinal, geojson=geo, color=vColor,
+    # Map configuration
+    map = px.choropleth_mapbox(df_final_rate, geojson=geo, color=vColor,
                         locations="code", featureidkey="properties.code",
                         center={"lat": vLat, "lon": vLon},
                         mapbox_style="carto-positron", zoom=vZoom, 
@@ -552,9 +592,20 @@ def update_map(selected_year, selected_round, selected_scale, selected_format, s
     Input('round-select', 'value'),
     Input('map-scale', 'value'),
     Input('map-format', 'value'),
-    Input('departements', 'value')
+    Input('departments', 'value')
 )
-def update_piechart(selected_year, selected_round, selected_scale, selected_format, selected_departement):
+def update_piechart(selected_year, selected_round, selected_format, selected_departement):
+    """ Callback function that renders a piechart showing the popularity of each candidate in a given department.
+
+    Parameters:
+    selected_year(int): Value of selected the election year from the slider.
+    selected_round(str): Value of selected the election round from the dropdown.
+    selected_format(str): Value of the selected format which determines the data to be shown, either 'participation' or 'candidat'.
+    selected_department(str): Value of selected the department from the dropdown.
+
+    Returns:
+    figure: Piechart.
+    """
     global filtered_df
     depart = selected_departement
     for i in range(1, 10):
@@ -564,9 +615,9 @@ def update_piechart(selected_year, selected_round, selected_scale, selected_form
     for i,j  in year_name.items():
         if(i == selected_year[0]):
             if(selected_round == 'T1'):
-                filtered_df=candidat_gagnant_commune(j[0],depart)
+                filtered_df=election_winner_town(j[0],depart)
             elif(selected_round == 'T2'):
-                filtered_df=candidat_gagnant_commune(j[1],depart)
+                filtered_df=election_winner_town(j[1],depart)
 
     fig1 = px.pie(filtered_df, values='voix', names='gagnant', title='Répartition des voix',color_discrete_sequence=px.colors.sequential.ice)
     fig1.update_layout(

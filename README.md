@@ -1,3 +1,5 @@
+*Travail réalisé dans le cadre d'un projet étudiant en première année du cycle ingénieur (E3) à ESIEE Paris dans la filière Informatique & Applications*
+
 # Projet Python
 Projet Python E3FI-2020 du premier semestre
 Le dashboard représente les résultats des élections présidentielles françaises entre 1995 et 2017
